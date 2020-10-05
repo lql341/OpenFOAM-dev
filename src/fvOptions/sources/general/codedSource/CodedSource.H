@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,30 +25,7 @@ Class
     Foam::fv::CodedSource
 
 Description
-   Constructs on-the-fly fvOption source
-
-    The hook functions take the following arguments:
-
-    codeCorrect
-    (
-        GeometricField<Type, fvPatchField, volMesh>& field
-    )
-
-    codeAddSup
-    (
-        fvMatrix<Type}>& eqn,
-        const label fieldi
-    )
-
-    constrain
-    (
-        fvMatrix<Type}>& eqn,
-        const label fieldi
-    )
-
-    where :
-        field is the field in fieldNames
-        eqn is the fvMatrix
+   Constructs on-the-fly fvOption source from user-supplied code
 
 Usage
     Example usage in controlDict:
@@ -69,7 +46,6 @@ Usage
 
             codeInclude
             #{
-
             #};
 
             codeCorrect
@@ -83,6 +59,16 @@ Usage
                 const scalarField& V = mesh_.V();
                 scalarField& heSource = eqn.source();
                 heSource -= 0.1*sqr(time.value())*V;
+            #};
+
+            codeAddRhoSup
+            #{
+                Pout<< "**codeAddRhoSup**" << endl;
+            #};
+
+            codeAddAlphaRhoSup
+            #{
+                Pout<< "**codeAddAlphaRhoSup**" << endl;
             #};
 
             codeSetValue
@@ -146,11 +132,14 @@ protected:
 
     // Protected Member Functions
 
-        //- Get the loaded dynamic libraries
-        virtual dlLibraryTable& libs() const;
-
         //- Adapt the context for the current object
         virtual void prepare(dynamicCode&, const dynamicCodeContext&) const;
+
+        //- Name of the dynamically generated CodedType
+        virtual const word& codeName() const
+        {
+            return name_;
+        }
 
         //- Return a description (type + name) for the output
         virtual string description() const;
@@ -188,20 +177,21 @@ public:
         //- Dynamically compiled fvOption
         option& redirectFvOption() const;
 
+
         // Evaluation
 
             //- Correct field
             virtual void correct
             (
                 GeometricField<Type, fvPatchField, volMesh>&
-            );
+            ) const;
 
             //- Explicit and implicit matrix contributions
             virtual void addSup
             (
                 fvMatrix<Type>& eqn,
                 const label fieldi
-            );
+            ) const;
 
             //- Explicit and implicit matrix contributions
             //  to compressible equation
@@ -210,14 +200,24 @@ public:
                 const volScalarField& rho,
                 fvMatrix<Type>& eqn,
                 const label fieldi
-            );
+            ) const;
+
+            //- Explicit and implicit matrix contributions
+            //  to phase equation
+            virtual void addSup
+            (
+                const volScalarField& alpha,
+                const volScalarField& rho,
+                fvMatrix<Type>& eqn,
+                const label fieldi
+            ) const;
 
             //- Set value
             virtual void constrain
             (
                 fvMatrix<Type>& eqn,
                 const label fieldi
-            );
+            ) const;
 
 
         // IO

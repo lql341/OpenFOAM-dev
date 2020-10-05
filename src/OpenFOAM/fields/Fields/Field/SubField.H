@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -53,7 +53,7 @@ template<class Type> class Field;
 template<class Type> class SubField;
 
 /*---------------------------------------------------------------------------*\
-                           Class SubField Declaration
+                          Class SubField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -115,6 +115,9 @@ public:
 
         //- Assignment via UList operator. Takes linear time.
         inline void operator=(const Field<Type>&);
+
+        //- Assignment via UList operator. Takes linear time.
+        inline void operator=(const Type&);
 
         //- Assignment via UList operator. Takes linear time.
         template<class Form, direction Ncmpts>

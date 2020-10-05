@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,7 +44,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                  Class cyclicRepeatAMIPointPatchField Declaration
+               Class cyclicRepeatAMIPointPatchField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -62,18 +62,6 @@ public:
 
         //- Inherit parent constructors
         using cyclicAMIPointPatchField<Type>::cyclicAMIPointPatchField;
-
-        //- Construct and return a clone
-        virtual autoPtr<pointPatchField<Type>> clone() const
-        {
-            return autoPtr<pointPatchField<Type>>
-            (
-                new cyclicRepeatAMIPointPatchField<Type>
-                (
-                    *this
-                )
-            );
-        }
 
         //- Construct and return a clone setting internal field reference
         virtual autoPtr<pointPatchField<Type>> clone

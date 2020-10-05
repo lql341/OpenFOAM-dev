@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -84,7 +84,7 @@ Ostream& operator<<
 
 
 /*---------------------------------------------------------------------------*\
-                    Class WLFTransport Declaration
+                        Class WLFTransport Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Thermo>
@@ -108,6 +108,20 @@ class WLFTransport
 
         //- Reciprocal Prandtl Number []
         scalar rPr_;
+
+
+    // Private Constructors
+
+        //- Construct from components
+        inline WLFTransport
+        (
+            const Thermo& t,
+            const scalar mu0,
+            const scalar Tr,
+            const scalar C1,
+            const scalar C2,
+            const scalar Pr
+        );
 
 
     // Private Member Functions
@@ -146,9 +160,6 @@ public:
 
         //- Thermal conductivity [W/m/K]
         inline scalar kappa(const scalar p, const scalar T) const;
-
-        //- Thermal diffusivity of enthalpy [kg/m/s]
-        inline scalar alphah(const scalar p, const scalar T) const;
 
         // Species diffusivity
         // inline scalar D(const scalar p, const scalar T) const;

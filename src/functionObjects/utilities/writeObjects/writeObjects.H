@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -93,7 +93,7 @@ namespace functionObjects
 {
 
 /*---------------------------------------------------------------------------*\
-                   Class writeObjects Declaration
+                        Class writeObjects Declaration
 \*---------------------------------------------------------------------------*/
 
 class writeObjects
@@ -115,6 +115,7 @@ public:
         };
 
         static const NamedEnum<writeOption, 3> writeOptionNames_;
+
 
 private:
 

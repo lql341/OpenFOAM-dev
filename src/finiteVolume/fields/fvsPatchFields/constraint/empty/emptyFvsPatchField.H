@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,7 +44,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class emptyFvsPatch Declaration
+                        Class emptyFvsPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -85,20 +85,8 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
-        emptyFvsPatchField
-        (
-            const emptyFvsPatchField<Type>&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvsPatchField<Type>> clone() const
-        {
-            return tmp<fvsPatchField<Type>>
-            (
-                new emptyFvsPatchField<Type>(*this)
-            );
-        }
+        //- Disallow copy without setting internal field reference
+        emptyFvsPatchField(const emptyFvsPatchField<Type>&) = delete;
 
         //- Copy constructor setting internal field reference
         emptyFvsPatchField

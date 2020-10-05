@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -100,23 +100,6 @@ class thermo
         static const int maxIter_;
 
 
-    // Private Member Functions
-
-        //- Return the temperature corresponding to the value of the
-        //  thermodynamic property f, given the function f = F(p, T)
-        //  and dF(p, T)/dT
-        inline scalar T
-        (
-            const scalar f,
-            const scalar p,
-            const scalar T0,
-            scalar (thermo::*F)(const scalar, const scalar) const,
-            scalar (thermo::*dFdT)(const scalar, const scalar) const,
-            scalar (thermo::*limit)(const scalar) const,
-            const bool diagnostics = false
-        ) const;
-
-
 public:
 
     //- The thermodynamics of the individual species'
@@ -158,8 +141,8 @@ public:
             // Sensible enthalpy [J/kg]
             // inline scalar Hs(const scalar p, const scalar T) const;
 
-            // Chemical enthalpy [J/kg]
-            // inline scalar Hc() const;
+            // Enthalpy of formation [J/kg]
+            // inline scalar Hf() const;
 
             // Absolute enthalpy [J/kg]
             // inline scalar Ha(const scalar p, const scalar T) const;
@@ -210,7 +193,7 @@ public:
             //- Sensible enthalpy [J/kmol]
             inline scalar hs(const scalar p, const scalar T) const;
 
-            //- Chemical enthalpy [J/kmol]
+            //- Enthalpy of formation [J/kmol]
             inline scalar hc() const;
 
             //- Entropy [J/kmol/K]
@@ -273,6 +256,28 @@ public:
 
 
         // Energy->temperature  inversion functions
+
+            //- Return the temperature corresponding to the value of the
+            //  thermodynamic property f, given the function f = F(p, T)
+            //  and dF(p, T)/dT
+            template
+            <
+                class ThermoType,
+                class FType,
+                class dFdTType,
+                class LimitType
+            >
+            inline static scalar T
+            (
+                const ThermoType& thermo,
+                const scalar f,
+                const scalar p,
+                const scalar T0,
+                FType F,
+                dFdTType dFdT,
+                LimitType limit,
+                const bool diagnostics = false
+            );
 
             //- Temperature from enthalpy or internal energy
             //  given an initial temperature T0

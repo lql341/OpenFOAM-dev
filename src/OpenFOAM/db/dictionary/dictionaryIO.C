@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -119,6 +119,12 @@ bool Foam::dictionary::read(Istream& is, const bool keepHeader)
 }
 
 
+bool Foam::dictionary::global() const
+{
+    return false;
+}
+
+
 bool Foam::dictionary::substituteKeyword(const word& keyword)
 {
     word varName = keyword(1, keyword.size()-1);
@@ -186,7 +192,7 @@ void Foam::dictionary::write(Ostream& os, bool subDict) const
         os  << e;
 
         // Add extra new line between entries for "top-level" dictionaries
-        if (!subDict && parent() == dictionary::null && e != *last())
+        if (!subDict && parent() == dictionary::null && (&e != last()))
         {
             os  << nl;
         }

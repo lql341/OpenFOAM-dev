@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -48,7 +48,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class regionCoupledFvPatch Declaration
+                    Class regionCoupledFvPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 class regionCoupledFvPatch
@@ -70,7 +70,7 @@ class regionCoupledFvPatch
             (
                 nbrFvMesh().boundary()
                 [
-                    neighbPatchID()
+                    nbrPatchID()
                 ]
             );
         }

@@ -1,20 +1,20 @@
     const fvMesh& mesh = fluidRegions[i];
 
-    CombustionModel<rhoReactionThermo>& reaction = reactionFluid[i];
+    combustionModel& reaction = reactionFluid[i];
 
-    rhoReactionThermo& thermo = thermoFluid[i];
+    fluidReactionThermo& thermo = thermoFluid[i];
     thermo.validate(args.executable(), "h", "e");
 
-    basicMultiComponentMixture& composition = thermo.composition();
+    basicSpecieMixture& composition = thermo.composition();
     PtrList<volScalarField>& Y = composition.Y();
 
     label inertIndex = -1;
     if (Y.size())
     {
-        const word inertSpecie(thermo.lookup("inertSpecie"));
+        const word inertSpecie(thermo.properties().lookup("inertSpecie"));
         if (!composition.species().found(inertSpecie))
         {
-            FatalIOErrorIn(args.executable().c_str(), thermo)
+            FatalIOErrorIn(args.executable().c_str(), thermo.properties())
                 << "Inert specie " << inertSpecie
                 << " not found in available species "
                 << composition.species()
@@ -27,7 +27,10 @@
     volVectorField& U = UFluid[i];
     surfaceScalarField& phi = phiFluid[i];
 
-    compressible::turbulenceModel& turbulence = turbulenceFluid[i];
+    compressible::momentumTransportModel& turbulence = turbulenceFluid[i];
+    fluidReactionThermophysicalTransportModel& thermophysicalTransport =
+        thermophysicalTransportFluid[i];
+
     volScalarField& K = KFluid[i];
     volScalarField& dpdt = dpdtFluid[i];
 
@@ -37,6 +40,7 @@
     volScalarField& p_rgh = p_rghFluid[i];
 
     const dimensionedVector& g = gFluid[i];
+    const dimensionedScalar& pRef = pRefFluid[i];
     const volScalarField& gh = ghFluid[i];
     const surfaceScalarField& ghf = ghfFluid[i];
 
@@ -46,7 +50,7 @@
     radiationModel& rad = radiation[i];
 
     IOMRFZoneList& MRF = MRFfluid[i];
-    fv::options& fvOptions = fluidFvOptions[i];
+    const fv::options& fvOptions = fluidFvOptions[i];
 
     const dimensionedScalar initialMass
     (
@@ -60,3 +64,7 @@
     pressureControl& pressureControl = pressureControlFluid[i];
 
     scalar cumulativeContErr = cumulativeContErrs[i];
+
+    // This solver does not support moving mesh but it uses the pressure
+    // equation of one which does, so we need a dummy face-momentum field
+    autoPtr<surfaceVectorField> rhoUf(nullptr);

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2014-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,8 +25,8 @@ Class
     Foam::basicSpecieMixture
 
 Description
-    Specialization of basicMultiComponentMixture for a mixture consisting
-    of a number for molecular species.
+    Specialization of basicMixture for a mixture consisting of a number for
+    molecular species.
 
 SourceFiles
     basicSpecieMixture.C
@@ -36,7 +36,10 @@ SourceFiles
 #ifndef basicSpecieMixture_H
 #define basicSpecieMixture_H
 
-#include "basicMultiComponentMixture.H"
+#include "volFields.H"
+#include "PtrList.H"
+#include "basicMixture.H"
+#include "speciesTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,13 +47,27 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                 Class basicSpecieMixture Declaration
+                     Class basicSpecieMixture Declaration
 \*---------------------------------------------------------------------------*/
 
 class basicSpecieMixture
 :
-    public basicMultiComponentMixture
+    public basicMixture
 {
+
+protected:
+
+    // Protected data
+
+        //- Table of specie names
+        speciesTable species_;
+
+        //- List of specie active flags
+        mutable List<bool> active_;
+
+        //- Species mass fractions
+        PtrList<volScalarField> Y_;
+
 
 public:
 
@@ -80,16 +97,53 @@ public:
 
     // Member Functions
 
-        // Per specie properties
+        //- Return the table of species
+        inline const speciesTable& species() const;
+
+        //- Does the mixture include this specie?
+        inline bool contains(const word& specieName) const;
+
+        //- Return true for active species
+        inline bool active(label speciei) const;
+
+        //- Return the bool list of active species
+        inline const List<bool>& active() const;
+
+        //- Set speciei active
+        inline void setActive(label speciei) const;
+
+        //- Set speciei inactive
+        inline void setInactive(label speciei) const;
+
+        //- Return the mass-fraction fields
+        inline PtrList<volScalarField>& Y();
+
+        //- Return the const mass-fraction fields
+        inline const PtrList<volScalarField>& Y() const;
+
+        //- Return the mass-fraction field for a specie given by index
+        inline volScalarField& Y(const label i);
+
+        //- Return the const mass-fraction field for a specie given by index
+        inline const volScalarField& Y(const label i) const;
+
+        //- Return the mass-fraction field for a specie given by name
+        inline volScalarField& Y(const word& specieName);
+
+        //- Return the const mass-fraction field for a specie given by name
+        inline const volScalarField& Y(const word& specieName) const;
+
+
+        // Specie properties
 
             //- Molecular weight of the given specie [kg/kmol]
             virtual scalar Wi(const label speciei) const = 0;
 
-            //- Chemical enthalpy [J/kg]
-            virtual scalar Hc(const label speciei) const = 0;
+            //- Enthalpy of formation [J/kg]
+            virtual scalar Hf(const label speciei) const = 0;
 
 
-        // Per specie thermo properties
+        // Specie thermo properties
 
             //- Density [kg/m^3]
             virtual scalar rho
@@ -147,28 +201,20 @@ public:
                 const volScalarField& T
             ) const = 0;
 
-            //- Absolute enthalpy [J/kg]
-            virtual scalar Ha
-            (
-                const label speciei,
-                const scalar p,
-                const scalar T
-            ) const = 0;
-
-            //- Absolute enthalpy [J/kg]
-            virtual tmp<volScalarField> Ha
-            (
-                const label speciei,
-                const volScalarField& p,
-                const volScalarField& T
-            ) const = 0;
-
             //- Sensible enthalpy [J/kg]
             virtual scalar Hs
             (
                 const label speciei,
                 const scalar p,
                 const scalar T
+            ) const = 0;
+
+            //- Sensible enthalpy [J/kg]
+            virtual tmp<scalarField> Hs
+            (
+                const label speciei,
+                const scalarField& p,
+                const scalarField& T
             ) const = 0;
 
             //- Sensible enthalpy [J/kg]
@@ -179,8 +225,32 @@ public:
                 const volScalarField& T
             ) const = 0;
 
+            //- Absolute enthalpy [J/kg]
+            virtual scalar Ha
+            (
+                const label speciei,
+                const scalar p,
+                const scalar T
+            ) const = 0;
 
-        // Per specie transport properties
+            //- Enthalpy/Internal energy [J/kg]
+            virtual tmp<scalarField> Ha
+            (
+                const label speciei,
+                const scalarField& p,
+                const scalarField& T
+            ) const = 0;
+
+            //- Absolute enthalpy [J/kg]
+            virtual tmp<volScalarField> Ha
+            (
+                const label speciei,
+                const volScalarField& p,
+                const volScalarField& T
+            ) const = 0;
+
+
+        // Specie transport properties
 
             //- Dynamic viscosity [kg/m/s]
             virtual scalar mu
@@ -213,28 +283,16 @@ public:
                 const volScalarField& p,
                 const volScalarField& T
             ) const = 0;
-
-            //- Thermal conductivity [W/m/K]
-            virtual scalar alphah
-            (
-                const label speciei,
-                const scalar p,
-                const scalar T
-            ) const = 0;
-
-            //- Thermal diffusivity of enthalpy [kg/m/s]
-            virtual tmp<volScalarField> alphah
-            (
-                const label speciei,
-                const volScalarField& p,
-                const volScalarField& T
-            ) const = 0;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "basicSpecieMixtureI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

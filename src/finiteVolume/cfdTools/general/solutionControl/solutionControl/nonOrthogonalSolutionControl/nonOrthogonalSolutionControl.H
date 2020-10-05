@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -45,7 +45,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class nonOrthogonalSolutionControl Declaration
+                Class nonOrthogonalSolutionControl Declaration
 \*---------------------------------------------------------------------------*/
 
 class nonOrthogonalSolutionControl
@@ -94,7 +94,7 @@ public:
             //- Maximum number of non-orthogonal correctors
             inline label nCorrNonOrth() const;
 
-            //- Flat to indicate any non-orthogonal iteration
+            //- Flag to indicate any non-orthogonal iteration
             inline bool anyNonOrthogonalIter() const;
 
             //- Flag to indicate the first non-orthogonal iteration

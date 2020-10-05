@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -33,8 +33,21 @@ License
 #include "Table.H"
 #include "TableFile.H"
 #include "Scale.H"
+#include "CodedFunction1.H"
 
 #include "fieldTypes.H"
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+defineTypeName(Foam::Function1s::coded);
+
+template<>
+const Foam::wordList Foam::CodedBase<Foam::Function1s::coded>::codeKeys_ =
+{
+    "code",
+    "codeInclude"
+};
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -49,7 +62,8 @@ License
     makeFunction1Type(Square, Type);                                           \
     makeFunction1Type(Table, Type);                                            \
     makeFunction1Type(TableFile, Type);                                        \
-    makeFunction1Type(Scale, Type);
+    makeFunction1Type(Scale, Type);                                            \
+    makeFunction1Type(Coded, Type);
 
 namespace Foam
 {

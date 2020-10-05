@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -57,7 +57,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-          Class uniformFixedValuePointPatchField Declaration
+              Class uniformFixedValuePointPatchField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -102,23 +102,11 @@ public:
             const pointPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         uniformFixedValuePointPatchField
         (
             const uniformFixedValuePointPatchField<Type>&
-        );
-
-        //- Construct and return a clone
-        virtual autoPtr<pointPatchField<Type>> clone() const
-        {
-            return autoPtr<pointPatchField<Type>>
-            (
-                new uniformFixedValuePointPatchField<Type>
-                (
-                    *this
-                )
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         uniformFixedValuePointPatchField

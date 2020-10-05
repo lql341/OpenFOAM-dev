@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -97,7 +97,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-          Class activeBaffleVelocityFvPatchVectorField Declaration
+           Class activeBaffleVelocityFvPatchVectorField Declaration
 \*---------------------------------------------------------------------------*/
 
 class activeBaffleVelocityFvPatchVectorField
@@ -176,20 +176,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         activeBaffleVelocityFvPatchVectorField
         (
             const activeBaffleVelocityFvPatchVectorField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchVectorField> clone() const
-        {
-            return tmp<fvPatchVectorField>
-            (
-                new activeBaffleVelocityFvPatchVectorField(*this)
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         activeBaffleVelocityFvPatchVectorField

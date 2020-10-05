@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -331,7 +331,7 @@ Foam::Time::Time
 
     objectRegistry(*this),
 
-    libs_(),
+    runTimeModifiable_(false),
 
     controlDict_
     (
@@ -341,8 +341,7 @@ Foam::Time::Time
             system(),
             *this,
             IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE,
-            false
+            IOobject::NO_WRITE
         )
     ),
 
@@ -363,12 +362,11 @@ Foam::Time::Time
     writeVersion_(IOstream::currentVersion),
     writeCompression_(IOstream::UNCOMPRESSED),
     graphFormat_("raw"),
-    runTimeModifiable_(false),
     cacheTemporaryObjects_(true),
 
     functionObjects_(*this, enableFunctionObjects)
 {
-    libs_.open(controlDict_, "libs");
+    libs.open(controlDict_, "libs");
 
     // Explicitly set read flags on objectRegistry so anything constructed
     // from it reads as well (e.g. fvSolution).
@@ -376,15 +374,8 @@ Foam::Time::Time
 
     setControls();
 
-    // Time objects not registered so do like objectRegistry::checkIn ourselves.
-    if (runTimeModifiable_)
-    {
-        // Monitor all files that controlDict depends on
-        fileHandler().addWatches(controlDict_, controlDict_.files());
-    }
-
-    // Clear dependent files
-    controlDict_.files().clear();
+    // Add a watch on the controlDict file after runTimeModifiable_ is set
+    controlDict_.addWatch();
 }
 
 
@@ -408,7 +399,7 @@ Foam::Time::Time
 
     objectRegistry(*this),
 
-    libs_(),
+    runTimeModifiable_(false),
 
     controlDict_
     (
@@ -418,8 +409,7 @@ Foam::Time::Time
             system(),
             *this,
             IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE,
-            false
+            IOobject::NO_WRITE
         )
     ),
 
@@ -440,7 +430,6 @@ Foam::Time::Time
     writeVersion_(IOstream::currentVersion),
     writeCompression_(IOstream::UNCOMPRESSED),
     graphFormat_("raw"),
-    runTimeModifiable_(false),
     cacheTemporaryObjects_(true),
 
     functionObjects_
@@ -451,7 +440,7 @@ Foam::Time::Time
       : !args.optionFound("noFunctionObjects")
     )
 {
-    libs_.open(controlDict_, "libs");
+    libs.open(controlDict_, "libs");
 
     // Explicitly set read flags on objectRegistry so anything constructed
     // from it reads as well (e.g. fvSolution).
@@ -459,15 +448,8 @@ Foam::Time::Time
 
     setControls();
 
-    // Time objects not registered so do like objectRegistry::checkIn ourselves.
-    if (runTimeModifiable_)
-    {
-        // Monitor all files that controlDict depends on
-        fileHandler().addWatches(controlDict_, controlDict_.files());
-    }
-
-    // Clear dependent files since not needed
-    controlDict_.files().clear();
+    // Add a watch on the controlDict file after runTimeModifiable_ is set
+    controlDict_.addWatch();
 }
 
 
@@ -491,7 +473,7 @@ Foam::Time::Time
 
     objectRegistry(*this),
 
-    libs_(),
+    runTimeModifiable_(false),
 
     controlDict_
     (
@@ -500,9 +482,8 @@ Foam::Time::Time
             controlDictName,
             system(),
             *this,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
         ),
         dict
     ),
@@ -524,32 +505,20 @@ Foam::Time::Time
     writeVersion_(IOstream::currentVersion),
     writeCompression_(IOstream::UNCOMPRESSED),
     graphFormat_("raw"),
-    runTimeModifiable_(false),
     cacheTemporaryObjects_(true),
 
     functionObjects_(*this, enableFunctionObjects)
 {
-    libs_.open(controlDict_, "libs");
-
+    libs.open(controlDict_, "libs");
 
     // Explicitly set read flags on objectRegistry so anything constructed
     // from it reads as well (e.g. fvSolution).
     readOpt() = IOobject::MUST_READ_IF_MODIFIED;
 
-    // Since could not construct regIOobject with setting:
-    controlDict_.readOpt() = IOobject::MUST_READ_IF_MODIFIED;
-
     setControls();
 
-    // Time objects not registered so do like objectRegistry::checkIn ourselves.
-    if (runTimeModifiable_)
-    {
-        // Monitor all files that controlDict depends on
-        fileHandler().addWatches(controlDict_, controlDict_.files());
-    }
-
-    // Clear dependent files since not needed
-    controlDict_.files().clear();
+    // Add a watch on the controlDict file after runTimeModifiable_ is set
+    controlDict_.addWatch();
 }
 
 
@@ -572,7 +541,7 @@ Foam::Time::Time
 
     objectRegistry(*this),
 
-    libs_(),
+    runTimeModifiable_(false),
 
     controlDict_
     (
@@ -582,8 +551,7 @@ Foam::Time::Time
             system(),
             *this,
             IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
+            IOobject::NO_WRITE
         )
     ),
 
@@ -602,12 +570,11 @@ Foam::Time::Time
     writeVersion_(IOstream::currentVersion),
     writeCompression_(IOstream::UNCOMPRESSED),
     graphFormat_("raw"),
-    runTimeModifiable_(false),
     cacheTemporaryObjects_(true),
 
     functionObjects_(*this, enableFunctionObjects)
 {
-    libs_.open(controlDict_, "libs");
+    libs.open(controlDict_, "libs");
 }
 
 
@@ -615,11 +582,6 @@ Foam::Time::Time
 
 Foam::Time::~Time()
 {
-    forAllReverse(controlDict_.watchIndices(), i)
-    {
-        fileHandler().removeWatch(controlDict_.watchIndices()[i]);
-    }
-
     // Destroy function objects first
     functionObjects_.clear();
 }

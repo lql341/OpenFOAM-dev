@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2016-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,14 +28,14 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class CompType, class ThermoType>
-Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::ISAT
+template<class ThermoType>
+Foam::chemistryTabulationMethods::ISAT<ThermoType>::ISAT
 (
     const dictionary& chemistryProperties,
-    TDACChemistryModel<CompType, ThermoType>& chemistry
+    TDACChemistryModel<ThermoType>& chemistry
 )
 :
-    chemistryTabulationMethod<CompType, ThermoType>
+    chemistryTabulationMethod<ThermoType>
     (
         chemistryProperties,
         chemistry
@@ -123,24 +123,24 @@ Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::ISAT
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class CompType, class ThermoType>
-Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::~ISAT()
+template<class ThermoType>
+Foam::chemistryTabulationMethods::ISAT<ThermoType>::~ISAT()
 {}
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-template<class CompType, class ThermoType>
-void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::addToMRU
+template<class ThermoType>
+void Foam::chemistryTabulationMethods::ISAT<ThermoType>::addToMRU
 (
-    chemPointISAT<CompType, ThermoType>* phi0
+    chemPointISAT<ThermoType>* phi0
 )
 {
     if (maxMRUSize_ > 0 && MRURetrieve_)
     {
         // First search if the chemPoint is already in the list
         bool isInList = false;
-        typename SLList <chemPointISAT<CompType, ThermoType>*>::iterator iter =
+        typename SLList <chemPointISAT<ThermoType>*>::iterator iter =
             MRUList_.begin();
         for ( ; iter != MRUList_.end(); ++iter)
         {
@@ -178,10 +178,10 @@ void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::addToMRU
 }
 
 
-template<class CompType, class ThermoType>
-void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::calcNewC
+template<class ThermoType>
+void Foam::chemistryTabulationMethods::ISAT<ThermoType>::calcNewC
 (
-    chemPointISAT<CompType, ThermoType>* phi0,
+    chemPointISAT<ThermoType>* phi0,
     const scalarField& phiq,
     scalarField& Rphiq
 )
@@ -249,10 +249,10 @@ void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::calcNewC
 }
 
 
-template<class CompType, class ThermoType>
-bool Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::grow
+template<class ThermoType>
+bool Foam::chemistryTabulationMethods::ISAT<ThermoType>::grow
 (
-    chemPointISAT<CompType, ThermoType>* phi0,
+    chemPointISAT<ThermoType>* phi0,
     const scalarField& phiq,
     const scalarField& Rphiq
 )
@@ -287,18 +287,18 @@ bool Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::grow
 }
 
 
-template<class CompType, class ThermoType>
+template<class ThermoType>
 bool
-Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::cleanAndBalance()
+Foam::chemistryTabulationMethods::ISAT<ThermoType>::cleanAndBalance()
 {
     bool treeModified(false);
 
     // Check all chemPoints to see if we need to delete some of the chemPoints
     // according to the elapsed time and number of growths
-    chemPointISAT<CompType, ThermoType>* x = chemisTree_.treeMin();
+    chemPointISAT<ThermoType>* x = chemisTree_.treeMin();
     while(x != nullptr)
     {
-        chemPointISAT<CompType, ThermoType>* xtmp =
+        chemPointISAT<ThermoType>* xtmp =
             chemisTree_.treeSuccessor(x);
 
         scalar elapsedTimeSteps = this->chemistry_.timeSteps() - x->timeTag();
@@ -333,8 +333,8 @@ Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::cleanAndBalance()
 }
 
 
-template<class CompType, class ThermoType>
-void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::computeA
+template<class ThermoType>
+void Foam::chemistryTabulationMethods::ISAT<ThermoType>::computeA
 (
     scalarSquareMatrix& A,
     const scalarField& Rphiq,
@@ -353,7 +353,7 @@ void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::computeA
         {
             s2c = this->chemistry_.simplifiedToCompleteIndex()[i];
         }
-        Rcq[i] = rhoi*Rphiq[s2c]/this->chemistry_.specieThermo()[s2c].W();
+        Rcq[i] = rhoi*Rphiq[s2c]/this->chemistry_.specieThermos()[s2c].W();
     }
     Rcq[speciesNumber] = Rphiq[Rphiq.size() - nAdditionalEqns_];
     Rcq[speciesNumber + 1] = Rphiq[Rphiq.size() - nAdditionalEqns_ + 1];
@@ -393,16 +393,16 @@ void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::computeA
                 sj = this->chemistry_.simplifiedToCompleteIndex()[j];
             }
             A(i, j) *=
-              -dt*this->chemistry_.specieThermo()[si].W()
-               /this->chemistry_.specieThermo()[sj].W();
+              -dt*this->chemistry_.specieThermos()[si].W()
+               /this->chemistry_.specieThermos()[sj].W();
         }
 
         A(i, i) += 1;
         // Columns for pressure and temperature
         A(i, speciesNumber) *=
-            -dt*this->chemistry_.specieThermo()[si].W()/rhoi;
+            -dt*this->chemistry_.specieThermos()[si].W()/rhoi;
         A(i, speciesNumber + 1) *=
-            -dt*this->chemistry_.specieThermo()[si].W()/rhoi;
+            -dt*this->chemistry_.specieThermos()[si].W()/rhoi;
     }
 
     // For the temperature and pressure lines, ddc(dTdt)
@@ -416,9 +416,9 @@ void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::computeA
         }
 
         A(speciesNumber, i) *=
-            -dt*rhoi/this->chemistry_.specieThermo()[si].W();
+            -dt*rhoi/this->chemistry_.specieThermos()[si].W();
         A(speciesNumber + 1, i) *=
-            -dt*rhoi/this->chemistry_.specieThermo()[si].W();
+            -dt*rhoi/this->chemistry_.specieThermos()[si].W();
     }
 
     A(speciesNumber, speciesNumber) = -dt*A(speciesNumber, speciesNumber) + 1;
@@ -448,15 +448,15 @@ void Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::computeA
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class CompType, class ThermoType>
-bool Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::retrieve
+template<class ThermoType>
+bool Foam::chemistryTabulationMethods::ISAT<ThermoType>::retrieve
 (
     const Foam::scalarField& phiq,
     scalarField& Rphiq
 )
 {
     bool retrieved(false);
-    chemPointISAT<CompType, ThermoType>* phi0;
+    chemPointISAT<ThermoType>* phi0;
 
     // If the tree is not empty
     if (chemisTree_.size())
@@ -480,7 +480,7 @@ bool Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::retrieve
         {
             typename SLList
             <
-                chemPointISAT<CompType, ThermoType>*
+                chemPointISAT<ThermoType>*
             >::iterator iter = MRUList_.begin();
 
             for ( ; iter != MRUList_.end(); ++iter)
@@ -529,8 +529,8 @@ bool Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::retrieve
 }
 
 
-template<class CompType, class ThermoType>
-Foam::label Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::add
+template<class ThermoType>
+Foam::label Foam::chemistryTabulationMethods::ISAT<ThermoType>::add
 (
     const scalarField& phiq,
     const scalarField& Rphiq,
@@ -564,20 +564,20 @@ Foam::label Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::add
         // It can be partially rebuild with the MRU list if this is used.
         if (!cleanAndBalance())
         {
-            DynamicList<chemPointISAT<CompType, ThermoType>*> tempList;
+            DynamicList<chemPointISAT<ThermoType>*> tempList;
             if (maxMRUSize_>0)
             {
                 // Create a copy of each chemPointISAT of the MRUList_ before
                 // they are deleted
                 typename SLList
                 <
-                    chemPointISAT<CompType, ThermoType>*
+                    chemPointISAT<ThermoType>*
                 >::iterator iter = MRUList_.begin();
                 for ( ; iter != MRUList_.end(); ++iter)
                 {
                     tempList.append
                     (
-                        new chemPointISAT<CompType, ThermoType>(*iter())
+                        new chemPointISAT<ThermoType>(*iter())
                     );
                 }
             }
@@ -588,7 +588,7 @@ Foam::label Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::add
 
             // Construct the tree without giving a reference to attach to it
             // since the structure has been completely discarded
-            chemPointISAT<CompType, ThermoType>* nulPhi = 0;
+            chemPointISAT<ThermoType>* nulPhi = 0;
             forAll(tempList, i)
             {
                 chemisTree().insertNewLeaf
@@ -635,9 +635,8 @@ Foam::label Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::add
 }
 
 
-template<class CompType, class ThermoType>
-void
-Foam::chemistryTabulationMethods::ISAT<CompType, ThermoType>::writePerformance()
+template<class ThermoType>
+void Foam::chemistryTabulationMethods::ISAT<ThermoType>::writePerformance()
 {
     if (this->log())
     {

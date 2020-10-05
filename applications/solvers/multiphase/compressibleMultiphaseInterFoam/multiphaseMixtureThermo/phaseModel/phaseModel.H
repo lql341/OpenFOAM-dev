@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -48,7 +48,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class phaseModel Declaration
+                         Class phaseModel Declaration
 \*---------------------------------------------------------------------------*/
 
 class phaseModel
@@ -61,6 +61,7 @@ class phaseModel
         const volScalarField& p_;
         const volScalarField& T_;
         autoPtr<rhoThermo> thermo_;
+        volScalarField Alpha_;
         volScalarField dgdt_;
 
 
@@ -127,6 +128,18 @@ public:
         rhoThermo& thermo()
         {
             return thermo_();
+        }
+
+        //- Return const-access to phase mass-fraction
+        const volScalarField& Alpha() const
+        {
+            return Alpha_;
+        }
+
+        //- Return access to phase mass-fraction
+        volScalarField& Alpha()
+        {
+            return Alpha_;
         }
 
         //- Return const-access to phase divergence

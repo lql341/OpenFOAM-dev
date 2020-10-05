@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -31,13 +31,14 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "turbulentFluidThermoModel.H"
-#include "basicReactingCloud.H"
+#include "fluidThermoMomentumTransportModel.H"
+#include "fluidReactionThermophysicalTransportModel.H"
+#include "parcelCloudList.H"
 #include "surfaceFilmModel.H"
 #include "radiationModel.H"
 #include "SLGThermo.H"
-#include "psiReactionThermo.H"
-#include "CombustionModel.H"
+#include "fluidReactionThermo.H"
+#include "combustionModel.H"
 #include "pimpleControl.H"
 #include "fvOptions.H"
 
@@ -98,6 +99,7 @@ int main(int argc, char *argv[])
                 if (pimple.turbCorr())
                 {
                     turbulence->correct();
+                    thermophysicalTransport->correct();
                 }
             }
 

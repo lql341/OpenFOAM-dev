@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -74,7 +74,7 @@ Ostream& operator<<
 
 
 /*---------------------------------------------------------------------------*\
-                           Class GeometricField Declaration
+                       Class GeometricField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type, template<class> class PatchField, class GeoMesh>
@@ -129,18 +129,13 @@ public:
 
             //- Construct from a BoundaryMesh,
             //  reference to the internal field
-            //  and a patch type
-            Boundary
-            (
-                const BoundaryMesh&,
-                const Internal&,
-                const word&
-            );
+            //  and a patch field type
+            Boundary(const BoundaryMesh&, const Internal&, const word&);
 
             //- Construct from a BoundaryMesh,
             //  reference to the internal field
-            //  and a wordList of patch types and optional the actual patch
-            //  types (to override constraint patches)
+            //  and a wordList of patch field types and optionally
+            //  the actual patch types (to override constraint patches)
             Boundary
             (
                 const BoundaryMesh&,
@@ -160,49 +155,24 @@ public:
             );
 
             //- Construct as copy setting the reference to the internal field
-            Boundary
-            (
-                const Internal&,
-                const Boundary&
-            );
+            Boundary(const Internal&, const Boundary&);
 
-            //- Copy constructor
-            //  Dangerous because Field may be set to a field which gets deleted
-            //  Need new type of BoundaryField, one which is part of a geometric
-            //  field for which snGrad etc. may be called and a free standing
-            //  BoundaryField for which such operations are unavailable.
-            Boundary
-            (
-                const Boundary&
-            );
+            //- Copy constructor deleted
+            //  as it would not set the internalField reference correctly
+            Boundary(const Boundary&) = delete;
 
-            //- Move constructor
-            //  Dangerous because Field may be set to a field which gets deleted
-            //  Need new type of BoundaryField, one which is part of a geometric
-            //  field for which snGrad etc. may be called and a free standing
-            //  BoundaryField for which such operations are unavailable.
-            Boundary
-            (
-                Boundary&&
-            );
+            //- Move constructor deleted
+            //  as it would not set the internalField reference correctly
+            Boundary(Boundary&&) = delete;
 
             //- Construct from dictionary
-            Boundary
-            (
-                const BoundaryMesh&,
-                const Internal&,
-                const dictionary&
-            );
+            Boundary(const BoundaryMesh&, const Internal&, const dictionary&);
 
 
         // Member Functions
 
             //- Read the boundary field
-            void readField
-            (
-                const Internal& field,
-                const dictionary& dict
-            );
+            void readField(const Internal& field, const dictionary& dict);
 
             //- Update the boundary condition coefficients
             void updateCoeffs();
@@ -210,7 +180,7 @@ public:
             //- Evaluate boundary conditions
             void evaluate();
 
-            //- Return a list of the patch types
+            //- Return a list of the patch field types
             wordList types() const;
 
             //- Return BoundaryField of the cell values neighbouring
@@ -301,7 +271,7 @@ public:
 
     // Constructors
 
-        //- Constructor given IOobject, mesh, dimensions and patch type.
+        //- Constructor given IOobject, mesh, dimensions and patch field type.
         //  This allocates storage for the field but not values.
         //  Used only within this class to create TEMPORARY variables
         GeometricField
@@ -312,7 +282,7 @@ public:
             const word& patchFieldType=PatchField<Type>::calculatedType()
         );
 
-        //- Constructor given IOobject, mesh, dimensions and patch types.
+        //- Constructor given IOobject, mesh, dimensions and patch field types.
         //  This allocates storage for the field but not values.
         //  Used only within this class to create TEMPORARY variables
         GeometricField
@@ -324,7 +294,8 @@ public:
             const wordList& actualPatchTypes = wordList()
         );
 
-        //- Constructor given IOobject, mesh, dimensioned<Type> and patch type.
+        //- Constructor given IOobject, mesh, dimensioned<Type>
+        //  and patch field type.
         GeometricField
         (
             const IOobject&,
@@ -333,7 +304,8 @@ public:
             const word& patchFieldType=PatchField<Type>::calculatedType()
         );
 
-        //- Constructor given IOobject, mesh, dimensioned<Type> and patch types.
+        //- Constructor given IOobject, mesh, dimensioned<Type>
+        //  and patch field types.
         GeometricField
         (
             const IOobject&,
@@ -377,22 +349,13 @@ public:
         );
 
         //- Copy constructor
-        GeometricField
-        (
-            const GeometricField<Type, PatchField, GeoMesh>&
-        );
+        GeometricField(const GeometricField<Type, PatchField, GeoMesh>&);
 
         //- Move constructor
-        GeometricField
-        (
-            GeometricField<Type, PatchField, GeoMesh>&&
-        );
+        GeometricField(GeometricField<Type, PatchField, GeoMesh>&&);
 
         //- Construct as copy of tmp<GeometricField> deleting argument
-        GeometricField
-        (
-            const tmp<GeometricField<Type, PatchField, GeoMesh>>&
-        );
+        GeometricField(const tmp<GeometricField<Type, PatchField, GeoMesh>>&);
 
         //- Construct as copy resetting IO parameters
         GeometricField
@@ -422,7 +385,7 @@ public:
             const tmp<GeometricField<Type, PatchField, GeoMesh>>&
         );
 
-        //- Construct as copy resetting IO parameters and patch type
+        //- Construct as copy resetting IO parameters and patch field type
         GeometricField
         (
             const IOobject&,
@@ -461,7 +424,7 @@ public:
         );
 
         //- Return a temporary field constructed from name, mesh, dimensionSet
-        //  and patch type.
+        //  and patch field type.
         static tmp<GeometricField<Type, PatchField, GeoMesh>> New
         (
             const word& name,
@@ -471,7 +434,7 @@ public:
         );
 
         //- Return a temporary field constructed from mesh, dimensioned<Type>
-        //  and patch type.
+        //  and patch field type.
         static tmp<GeometricField<Type, PatchField, GeoMesh>> New
         (
             const word& name,
@@ -481,7 +444,7 @@ public:
         );
 
         //- Return a temporary field constructed from mesh, dimensioned<Type>
-        //  and patch types.
+        //  and patch field types.
         static tmp<GeometricField<Type, PatchField, GeoMesh>> New
         (
             const word& name,
@@ -496,6 +459,14 @@ public:
         (
             const word& newName,
             const tmp<GeometricField<Type, PatchField, GeoMesh>>&
+        );
+
+        //- Rename temporary field, reset patch field type and return
+        static tmp<GeometricField<Type, PatchField, GeoMesh>> New
+        (
+            const word& newName,
+            const tmp<GeometricField<Type, PatchField, GeoMesh>>&,
+            const word&
         );
 
         //- Rename and reset patch fields types of temporary field and return

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2016-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,10 +24,10 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "writeVTK.H"
-#include "dictionary.H"
 #include "Time.H"
 #include "vtkMesh.H"
 #include "internalWriter.H"
+#include "OSspecific.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -132,7 +132,7 @@ bool Foam::functionObjects::writeVTK::write()
     UPtrList<const volTensorField> vtf(lookupFields<volTensorField>());
 
     // Write header for cellID and volFields
-    writeFuns::writeCellDataHeader
+    vtkWriteOps::writeCellDataHeader
     (
         writer.os(),
         vMesh.nFieldCells(),

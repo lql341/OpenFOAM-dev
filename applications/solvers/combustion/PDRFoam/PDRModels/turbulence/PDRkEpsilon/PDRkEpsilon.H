@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -61,7 +61,7 @@ SourceFiles
 #define compressible_PDRkEpsilon_H
 
 #include "kEpsilon.H"
-#include "turbulentFluidThermoModel.H"
+#include "fluidThermoMomentumTransportModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,18 +73,12 @@ namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class PDRkEpsilon Declaration
+                         Class PDRkEpsilon Declaration
 \*---------------------------------------------------------------------------*/
 
 class PDRkEpsilon
 :
-    public Foam::RASModels::kEpsilon
-    <
-        EddyDiffusivity
-        <
-            compressible::turbulenceModel
-        >
-    >
+    public Foam::RASModels::kEpsilon<compressible::momentumTransportModel>
 {
     // Private Data
 
@@ -109,7 +103,6 @@ public:
             const surfaceScalarField& alphaRhoPhi,
             const surfaceScalarField& phi,
             const fluidThermo& thermophysicalModel,
-            const word& turbulenceModelName = turbulenceModel::typeName,
             const word& modelName = typeName
         );
 
@@ -123,7 +116,7 @@ public:
         //- Solve the turbulence equations and correct the turbulence viscosity
         void correct();
 
-        //- Read turbulenceProperties dictionary
+        //- Read momentumTransport dictionary
         bool read();
 };
 

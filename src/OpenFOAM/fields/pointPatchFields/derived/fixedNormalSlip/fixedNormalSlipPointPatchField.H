@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -56,7 +56,7 @@ Ostream& operator<<
 
 
 /*---------------------------------------------------------------------------*\
-                        Class fixedNormalSlipPointPatchField Declaration
+               Class fixedNormalSlipPointPatchField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -102,18 +102,6 @@ public:
             const pointPatchFieldMapper&
         );
 
-        //- Construct and return a clone
-        virtual autoPtr<pointPatchField<Type>> clone() const
-        {
-            return autoPtr<pointPatchField<Type>>
-            (
-                new fixedNormalSlipPointPatchField<Type>
-                (
-                    *this
-                )
-            );
-        }
-
         //- Construct as copy setting internal field reference
         fixedNormalSlipPointPatchField
         (
@@ -136,6 +124,7 @@ public:
                 )
             );
         }
+
 
     // Member Functions
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -125,13 +125,12 @@ const scalar EDCexp1[] = {3, 2, 2, 2};
 const scalar EDCexp2[] = {3, 3, 2, 2};
 
 /*---------------------------------------------------------------------------*\
-                            Class EDC Declaration
+                             Class EDC Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class ReactionThermo>
 class EDC
 :
-    public laminar<ReactionThermo>
+    public laminar
 {
     // Private Data
 
@@ -161,13 +160,13 @@ public:
         EDC
         (
             const word& modelType,
-            const ReactionThermo& type,
-            const compressibleTurbulenceModel& turb,
+            const fluidReactionThermo& type,
+            const compressibleMomentumTransportModel& turb,
             const word& combustionProperties
         );
 
         //- Disallow default bitwise copy construction
-        EDC(const EDC&);
+        EDC(const EDC&) = delete;
 
 
     //- Destructor
@@ -200,12 +199,6 @@ public:
 
 } // End namespace combustionModels
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-    #include "EDC.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

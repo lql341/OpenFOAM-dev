@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2016-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,6 +35,8 @@ SourceFiles
 #ifndef PFA_H
 #define PFA_H
 
+#include "chemistryReductionMethod.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -43,13 +45,13 @@ namespace chemistryReductionMethods
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class ode Declaration
+                             Class ode Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class CompType, class ThermoType>
+template<class ThermoType>
 class PFA
 :
-    public chemistryReductionMethod<CompType, ThermoType>
+    public chemistryReductionMethod<ThermoType>
 {
     // Private Data
 
@@ -69,7 +71,7 @@ public:
         PFA
         (
             const IOdictionary& dict,
-            TDACChemistryModel<CompType, ThermoType>& chemistry
+            TDACChemistryModel<ThermoType>& chemistry
         );
 
 

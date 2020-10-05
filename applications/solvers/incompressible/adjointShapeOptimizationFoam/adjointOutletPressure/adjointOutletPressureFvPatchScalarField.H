@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -42,7 +42,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class adjointOutletPressureFvPatch Declaration
+                Class adjointOutletPressureFvPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 class adjointOutletPressureFvPatchScalarField
@@ -82,15 +82,6 @@ public:
             const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
         );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchScalarField> clone() const
-        {
-            return tmp<fvPatchScalarField>
-            (
-                new adjointOutletPressureFvPatchScalarField(*this)
-            );
-        }
 
         //- Construct as copy setting internal field reference
         adjointOutletPressureFvPatchScalarField

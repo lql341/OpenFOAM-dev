@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,7 +43,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                 Class smoluchowskiJumpTFvPatch Declaration
+                  Class smoluchowskiJumpTFvPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 class smoluchowskiJumpTFvPatchScalarField
@@ -107,15 +107,6 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Construct and return a clone
-        virtual tmp<fvPatchScalarField> clone() const
-        {
-            return tmp<fvPatchScalarField>
-            (
-                new smoluchowskiJumpTFvPatchScalarField(*this)
-            );
-        }
-
         //- Construct as copy setting internal field reference
         smoluchowskiJumpTFvPatchScalarField
         (
@@ -134,6 +125,9 @@ public:
                 new smoluchowskiJumpTFvPatchScalarField(*this, iF)
             );
         }
+
+
+    // Member Functions
 
         // Mapping functions
 

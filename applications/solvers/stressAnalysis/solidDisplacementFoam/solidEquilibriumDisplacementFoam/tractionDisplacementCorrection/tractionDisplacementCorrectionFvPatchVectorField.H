@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-        Class tractionDisplacementCorrectionStressFvPatch Declaration
+         Class tractionDisplacementCorrectionStressFvPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 class tractionDisplacementCorrectionFvPatchVectorField
@@ -90,20 +90,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Construct as copy setting internal field reference
+        //- Disallow copy without setting internal field reference
         tractionDisplacementCorrectionFvPatchVectorField
         (
             const tractionDisplacementCorrectionFvPatchVectorField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchVectorField> clone() const
-        {
-            return tmp<fvPatchVectorField>
-            (
-                new tractionDisplacementCorrectionFvPatchVectorField(*this)
-            );
-        }
+        ) = delete;
 
         //- Construct as copy setting internal field reference
         tractionDisplacementCorrectionFvPatchVectorField

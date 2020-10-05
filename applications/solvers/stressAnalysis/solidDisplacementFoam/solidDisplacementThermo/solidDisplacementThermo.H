@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2019-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,12 +43,12 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                        Class solidDisplacementThermo Declaration
+                   Class solidDisplacementThermo Declaration
 \*---------------------------------------------------------------------------*/
 
 class solidDisplacementThermo
 :
-    public solidThermo
+    public solidThermo::composite
 {
     // Private data
 
@@ -74,7 +74,7 @@ class solidDisplacementThermo
         volScalarField alphav_;
 
 
-    // Private member functions
+    // Private Member Functions
 
         void readProperty(volScalarField& prop) const;
 
@@ -192,6 +192,31 @@ public:
                 const label patchi
             ) const;
 
+            //- Sensible enthalpy [J/kg]
+            virtual tmp<volScalarField> hs() const;
+
+            //- Sensible enthalpy
+            //  for given pressure and temperature [J/kg]
+            virtual tmp<volScalarField> hs
+            (
+                const volScalarField& p,
+                const volScalarField& T
+            ) const;
+
+            //- Sensible enthalpy for cell-set [J/kg]
+            virtual tmp<scalarField> hs
+            (
+                const scalarField& T,
+                const labelList& cells
+            ) const;
+
+            //- Sensible enthalpy for patch [J/kg]
+            virtual tmp<scalarField> hs
+            (
+                const scalarField& T,
+                const label patchi
+            ) const;
+
             //- Absolute enthalpy [J/kg/K]
             virtual tmp<volScalarField> ha() const;
 
@@ -217,8 +242,16 @@ public:
                 const labelList& cells
             ) const;
 
-            //- Chemical enthalpy [J/kg]
+            //- Enthalpy of formation [J/kg]
             virtual tmp<volScalarField> hc() const;
+
+            //- Temperature from enthalpy/internal energy
+            virtual tmp<volScalarField> THE
+            (
+                const volScalarField& h,
+                const volScalarField& p,
+                const volScalarField& T0    // starting temperature
+            ) const;
 
             //- Temperature from enthalpy/internal energy for cell-set
             virtual tmp<scalarField> THE
@@ -330,10 +363,17 @@ public:
             virtual tmp<volVectorField> Kappa() const;
 
             //- Anisotropic thermal conductivity [W/m/K]
-            virtual tmp<vectorField> Kappa
-            (
-                const label patchi
-            ) const;
+            virtual tmp<vectorField> Kappa(const label patchi) const;
+
+            //- Anisotropic thermal conductivity for patch
+            //  in the local coordinate system [W/m/K]
+            virtual tmp<symmTensorField> KappaLocal(const label patchi) const;
+
+            //- Return the heat flux
+            virtual tmp<surfaceScalarField> q() const;
+
+            //- Return the source term for the energy equation
+            virtual tmp<fvScalarMatrix> divq(volScalarField& he) const;
 
 
         //- Update properties

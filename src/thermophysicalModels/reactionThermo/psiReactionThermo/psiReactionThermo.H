@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,7 +25,11 @@ Class
     Foam::psiReactionThermo
 
 Description
-    Foam::psiReactionThermo
+    Base-class for multi-component fluid thermodynamic properties based on
+    compressibility.
+
+See also
+    Foam::basicThermo
 
 SourceFiles
     psiReactionThermo.C
@@ -36,9 +40,7 @@ SourceFiles
 #define psiReactionThermo_H
 
 #include "psiThermo.H"
-#include "basicSpecieMixture.H"
-#include "autoPtr.H"
-#include "runTimeSelectionTables.H"
+#include "fluidReactionThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -46,15 +48,24 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class psiReactionThermo Declaration
+                      Class psiReactionThermo Declaration
 \*---------------------------------------------------------------------------*/
 
 class psiReactionThermo
 :
-    public psiThermo
+    virtual public psiThermo,
+    virtual public fluidReactionThermo
 {
-
 public:
+
+    // Public Classes
+
+        //- Forward declare the implementation class
+        class implementation;
+
+        //- Forward declare the composite class
+        class composite;
+
 
     //- Runtime type information
     TypeName("psiReactionThermo");
@@ -71,16 +82,6 @@ public:
     );
 
 
-    // Constructors
-
-        //- Construct from mesh and phase name
-        psiReactionThermo
-        (
-            const fvMesh&,
-            const word& phaseName
-        );
-
-
     // Selectors
 
         //- Standard selection based on fvMesh
@@ -93,15 +94,59 @@ public:
 
     //- Destructor
     virtual ~psiReactionThermo();
+};
 
 
-    // Member Functions
+/*---------------------------------------------------------------------------*\
+              Class psiReactionThermo::implementation Declaration
+\*---------------------------------------------------------------------------*/
 
-        //- Return the composition of the multi-component mixture
-        virtual basicSpecieMixture& composition() = 0;
+class psiReactionThermo::implementation
+:
+    virtual public psiReactionThermo
+{
+public:
 
-        //- Return the composition of the multi-component mixture
-        virtual const basicSpecieMixture& composition() const = 0;
+    // Constructors
+
+        //- Construct from mesh and phase name
+        implementation(const fvMesh&, const word& phaseName);
+
+
+    //- Destructor
+    virtual ~implementation();
+};
+
+
+/*---------------------------------------------------------------------------*\
+                Class psiReactionThermo::composite Declaration
+\*---------------------------------------------------------------------------*/
+
+class psiReactionThermo::composite
+:
+    public basicThermo::implementation,
+    public fluidThermo::implementation,
+    public psiThermo::implementation,
+    public fluidReactionThermo::implementation,
+    public psiReactionThermo::implementation
+{
+public:
+
+    // Constructors
+
+        //- Construct from mesh and phase name
+        composite
+        (
+            const fvMesh& mesh,
+            const word& phaseName
+        )
+        :
+            basicThermo::implementation(mesh, phaseName),
+            fluidThermo::implementation(mesh, phaseName),
+            psiThermo::implementation(mesh, phaseName),
+            fluidReactionThermo::implementation(mesh, phaseName),
+            psiReactionThermo::implementation(mesh, phaseName)
+        {}
 };
 
 

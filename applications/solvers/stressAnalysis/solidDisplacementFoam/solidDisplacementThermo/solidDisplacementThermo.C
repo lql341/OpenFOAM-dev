@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2019-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,6 +25,9 @@ License
 
 #include "solidDisplacementThermo.H"
 #include "fvMesh.H"
+#include "fvmLaplacian.H"
+#include "fvcSnGrad.H"
+#include "surfaceInterpolate.H"
 
 /* * * * * * * * * * * * * * * private static data * * * * * * * * * * * * * */
 
@@ -81,7 +84,7 @@ Foam::solidDisplacementThermo::solidDisplacementThermo
     const word& phaseName
 )
 :
-    solidThermo(mesh, phaseName),
+    solidThermo::composite(mesh, phaseName),
     planeStress_(lookup("planeStress")),
     thermalStress_(lookup("thermalStress")),
     Cp_
@@ -273,6 +276,46 @@ Foam::tmp<Foam::scalarField> Foam::solidDisplacementThermo::he
 }
 
 
+Foam::tmp<Foam::volScalarField> Foam::solidDisplacementThermo::hs() const
+{
+    NotImplemented;
+    return tmp<volScalarField>(nullptr);
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::solidDisplacementThermo::hs
+(
+    const volScalarField& p,
+    const volScalarField& T
+) const
+{
+    NotImplemented;
+    return tmp<volScalarField>(nullptr);
+}
+
+
+Foam::tmp<Foam::scalarField> Foam::solidDisplacementThermo::hs
+(
+    const scalarField& T,
+    const label patchi
+) const
+{
+    NotImplemented;
+    return tmp<scalarField>(nullptr);
+}
+
+
+Foam::tmp<Foam::scalarField> Foam::solidDisplacementThermo::hs
+(
+    const scalarField& T,
+    const labelList& cells
+) const
+{
+    NotImplemented;
+    return tmp<scalarField>(nullptr);
+}
+
+
 Foam::tmp<Foam::volScalarField> Foam::solidDisplacementThermo::ha() const
 {
     NotImplemented;
@@ -314,6 +357,18 @@ Foam::tmp<Foam::scalarField> Foam::solidDisplacementThermo::ha
 
 
 Foam::tmp<Foam::volScalarField> Foam::solidDisplacementThermo::hc() const
+{
+    NotImplemented;
+    return tmp<volScalarField>(nullptr);
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::solidDisplacementThermo::THE
+(
+    const volScalarField& h,
+    const volScalarField& p,
+    const volScalarField& T0
+) const
 {
     NotImplemented;
     return tmp<volScalarField>(nullptr);
@@ -502,6 +557,16 @@ Foam::tmp<Foam::vectorField> Foam::solidDisplacementThermo::Kappa
 }
 
 
+Foam::tmp<Foam::symmTensorField> Foam::solidDisplacementThermo::KappaLocal
+(
+    const label patchi
+) const
+{
+    NotImplemented;
+    return tmp<symmTensorField>(nullptr);
+}
+
+
 void Foam::solidDisplacementThermo::correct()
 {}
 
@@ -509,6 +574,20 @@ void Foam::solidDisplacementThermo::correct()
 bool Foam::solidDisplacementThermo::read()
 {
     return regIOobject::read();
+}
+
+
+Foam::tmp<Foam::surfaceScalarField>
+Foam::solidDisplacementThermo::q() const
+{
+    return -fvc::interpolate(kappa_)*fvc::snGrad(T());
+}
+
+
+Foam::tmp<Foam::fvScalarMatrix>
+Foam::solidDisplacementThermo::divq(volScalarField& T) const
+{
+    return -fvm::laplacian(kappa_, T);
 }
 
 

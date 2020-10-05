@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2014-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -93,7 +93,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-       Class fixedNormalInletOutletVelocityFvPatchVectorField Declaration
+      Class fixedNormalInletOutletVelocityFvPatchVectorField Declaration
 \*---------------------------------------------------------------------------*/
 
 class fixedNormalInletOutletVelocityFvPatchVectorField
@@ -145,20 +145,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         fixedNormalInletOutletVelocityFvPatchVectorField
         (
             const fixedNormalInletOutletVelocityFvPatchVectorField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchVectorField> clone() const
-        {
-            return tmp<fvPatchVectorField>
-            (
-                new fixedNormalInletOutletVelocityFvPatchVectorField(*this)
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         fixedNormalInletOutletVelocityFvPatchVectorField

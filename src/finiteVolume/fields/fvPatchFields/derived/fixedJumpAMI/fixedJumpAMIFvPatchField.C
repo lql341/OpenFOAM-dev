@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -86,17 +86,6 @@ Foam::fixedJumpAMIFvPatchField<Type>::fixedJumpAMIFvPatchField
 template<class Type>
 Foam::fixedJumpAMIFvPatchField<Type>::fixedJumpAMIFvPatchField
 (
-    const fixedJumpAMIFvPatchField<Type>& ptf
-)
-:
-    jumpCyclicAMIFvPatchField<Type>(ptf),
-    jump_(ptf.jump_)
-{}
-
-
-template<class Type>
-Foam::fixedJumpAMIFvPatchField<Type>::fixedJumpAMIFvPatchField
-(
     const fixedJumpAMIFvPatchField<Type>& ptf,
     const DimensionedField<Type, volMesh>& iF
 )
@@ -120,7 +109,7 @@ Foam::tmp<Foam::Field<Type>> Foam::fixedJumpAMIFvPatchField<Type>::jump() const
         const fixedJumpAMIFvPatchField& nbrPatch =
             refCast<const fixedJumpAMIFvPatchField<Type>>
             (
-                this->neighbourPatchField()
+                this->nbrPatchField()
             );
 
         if (this->cyclicAMIPatch().applyLowWeightCorrection())

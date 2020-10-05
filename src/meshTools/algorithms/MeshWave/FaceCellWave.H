@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -60,17 +60,17 @@ namespace Foam
 // Forward declaration of classes
 class polyMesh;
 class polyPatch;
-class vectorTensorTransform;
+class transformer;
 
 /*---------------------------------------------------------------------------*\
-                        Class FaceCellWaveName Declaration
+                      Class FaceCellWaveName Declaration
 \*---------------------------------------------------------------------------*/
 
 TemplateName(FaceCellWave);
 
 
 /*---------------------------------------------------------------------------*\
-                           Class FaceCellWave Declaration
+                        Class FaceCellWave Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type, class TrackingData = int>
@@ -215,7 +215,7 @@ protected:
             //- Apply transformation to Type
             void transform
             (
-                const tensorField& rotTensor,
+                const tensor& rotTensor,
                 const label nFaces,
                 List<Type>& faceInfo
             );
@@ -223,7 +223,7 @@ protected:
             //- Apply transformation to Type
             void transform
             (
-                const vectorTensorTransform& trans,
+                const transformer& trans,
                 const label nFaces,
                 List<Type>& faceInfo
             );

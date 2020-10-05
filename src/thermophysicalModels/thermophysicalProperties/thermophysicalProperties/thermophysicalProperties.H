@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -51,7 +51,7 @@ class thermophysicalProperties;
 Ostream& operator<<(Ostream& os, const thermophysicalProperties& l);
 
 /*---------------------------------------------------------------------------*\
-                    Class thermophysicalProperties Declaration
+                  Class thermophysicalProperties Declaration
 \*---------------------------------------------------------------------------*/
 
 class thermophysicalProperties
@@ -146,8 +146,8 @@ public:
             //- Sensible enthalpy [J/kg]
             virtual scalar Hs(const scalar p, const scalar T) const = 0;
 
-            //- Chemical enthalpy [J/kg]
-            virtual scalar Hc() const = 0;
+            //- Enthalpy of formation [J/kg]
+            virtual scalar Hf() const = 0;
 
             //- Absolute enthalpy [J/kg]
             virtual scalar Ha(const scalar p, const scalar T) const = 0;
@@ -163,9 +163,6 @@ public:
 
             //- Liquid thermal conductivity  [W/m/K]
             virtual scalar kappa(scalar p, scalar T) const = 0;
-
-            //- Liquid thermal diffusivity of enthalpy [kg/m/s]
-            virtual scalar alphah(const scalar p, const scalar T) const = 0;
 
 
     // I-O

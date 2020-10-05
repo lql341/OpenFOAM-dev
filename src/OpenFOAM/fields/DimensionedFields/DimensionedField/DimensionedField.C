@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -279,11 +279,11 @@ DimensionedField<Type, GeoMesh>::New
             IOobject
             (
                 name,
-                mesh.time().timeName(),
-                mesh,
+                mesh.thisDb().time().timeName(),
+                mesh.thisDb(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
-                mesh.cacheTemporaryObject(name)
+                mesh.thisDb().cacheTemporaryObject(name)
             ),
             mesh,
             ds,
@@ -309,11 +309,11 @@ DimensionedField<Type, GeoMesh>::New
             IOobject
             (
                 name,
-                mesh.time().timeName(),
-                mesh,
+                mesh.thisDb().time().timeName(),
+                mesh.thisDb(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
-                mesh.cacheTemporaryObject(name)
+                mesh.thisDb().cacheTemporaryObject(name)
             ),
             mesh,
             dt,
@@ -411,7 +411,7 @@ DimensionedField<Type, GeoMesh>::component
         )
     );
 
-    Foam::component(result(), *this, d);
+    Foam::component(result.ref(), *this, d);
 
     return result;
 }
@@ -459,7 +459,7 @@ DimensionedField<Type, GeoMesh>::T() const
         )
     );
 
-    Foam::T(result(), *this);
+    Foam::T(result.ref(), *this);
 
     return result;
 }

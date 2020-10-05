@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,29 +44,6 @@ Foam::sampledSurfaces::plane::plane
 (
     const word& name,
     const polyMesh& mesh,
-    const plane& planeDesc,
-    const keyType& zoneKey,
-    const bool triangulate
-)
-:
-    sampledSurface(name, mesh),
-    cuttingPlane(planeDesc),
-    zoneKey_(zoneKey),
-    triangulate_(triangulate),
-    needsUpdate_(true)
-{
-    if (debug && zoneKey_.size() && mesh.cellZones().findIndex(zoneKey_) < 0)
-    {
-        Info<< "cellZone " << zoneKey_
-            << " not found - using entire mesh" << endl;
-    }
-}
-
-
-Foam::sampledSurfaces::plane::plane
-(
-    const word& name,
-    const polyMesh& mesh,
     const dictionary& dict
 )
 :
@@ -80,10 +57,13 @@ Foam::sampledSurfaces::plane::plane
     // allow lookup from global coordinate systems
     if (dict.found("coordinateSystem"))
     {
-        coordinateSystem cs(mesh, dict.subDict("coordinateSystem"));
+        autoPtr<coordinateSystem> cs
+        (
+            coordinateSystem::New(mesh, dict.subDict("coordinateSystem"))
+        );
 
-        point  base = cs.globalPosition(planeDesc().refPoint());
-        vector norm = cs.globalVector(planeDesc().normal());
+        point  base = cs->globalPosition(planeDesc().refPoint());
+        vector norm = cs->globalVector(planeDesc().normal());
 
         // Assign the plane description
         static_cast<Foam::plane&>(*this) = Foam::plane(base, norm);

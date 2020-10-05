@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class slicedFvsPatch Declaration
+                       Class slicedFvsPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -78,32 +78,12 @@ public:
         slicedFvsPatchField
         (
             const fvPatch&,
-            const DimensionedField<Type, surfaceMesh>&
-        );
-
-        //- Construct from patch, internal field and dictionary
-        slicedFvsPatchField
-        (
-            const fvPatch&,
             const DimensionedField<Type, surfaceMesh>&,
-            const dictionary&
+            const fvsPatchField<Type>& pf
         );
 
-        //- Construct by mapping the given slicedFvsPatchField<Type>
-        //  onto a new patch
-        slicedFvsPatchField
-        (
-            const slicedFvsPatchField<Type>&,
-            const fvPatch&,
-            const DimensionedField<Type, surfaceMesh>&,
-            const fvPatchFieldMapper&
-        );
-
-        //- Copy constructor
-        slicedFvsPatchField(const slicedFvsPatchField<Type>&);
-
-        //- Construct and return a clone
-        virtual tmp<fvsPatchField<Type>> clone() const;
+        //- Disallow copy without setting internal field reference
+        slicedFvsPatchField(const slicedFvsPatchField<Type>&) = delete;
 
         //- Copy constructor setting internal field reference
         slicedFvsPatchField

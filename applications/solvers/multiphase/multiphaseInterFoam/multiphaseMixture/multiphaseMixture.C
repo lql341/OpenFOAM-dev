@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,6 +25,7 @@ License
 
 #include "multiphaseMixture.H"
 #include "alphaContactAngleFvPatchScalarField.H"
+#include "unitConversion.H"
 #include "Time.H"
 #include "subCycle.H"
 #include "MULES.H"
@@ -33,11 +34,6 @@ License
 #include "fvcSnGrad.H"
 #include "fvcDiv.H"
 #include "fvcFlux.H"
-
-// * * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * //
-
-const Foam::scalar Foam::multiphaseMixture::convertToRad =
-    Foam::constant::mathematical::pi/180.0;
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -443,7 +439,7 @@ void Foam::multiphaseMixture::correctContactAngle
 
             bool matched = (tp.key().first() == alpha1.name());
 
-            scalar theta0 = convertToRad*tp().theta0(matched);
+            scalar theta0 = degToRad(tp().theta0(matched));
             scalarField theta(boundary[patchi].size(), theta0);
 
             scalar uTheta = tp().uTheta();
@@ -451,8 +447,8 @@ void Foam::multiphaseMixture::correctContactAngle
             // Calculate the dynamic contact angle if required
             if (uTheta > small)
             {
-                scalar thetaA = convertToRad*tp().thetaA(matched);
-                scalar thetaR = convertToRad*tp().thetaR(matched);
+                scalar thetaA = degToRad(tp().thetaA(matched));
+                scalar thetaR = degToRad(tp().thetaR(matched));
 
                 // Calculated the component of the velocity parallel to the wall
                 vectorField Uwall
@@ -557,14 +553,17 @@ void Foam::multiphaseMixture::solveAlphas
     surfaceScalarField phic(mag(phi_/mesh_.magSf()));
     phic = min(cAlpha*phic, max(phic));
 
-    PtrList<surfaceScalarField> alphaPhiCorrs(phases_.size());
+    UPtrList<const volScalarField> alphas(phases_.size());
+    PtrList<surfaceScalarField> alphaPhis(phases_.size());
     int phasei = 0;
 
     forAllIter(PtrDictionary<phase>, phases_, iter)
     {
-        phase& alpha = iter();
+        const phase& alpha = iter();
 
-        alphaPhiCorrs.set
+        alphas.set(phasei, &alpha);
+
+        alphaPhis.set
         (
             phasei,
             new surfaceScalarField
@@ -579,7 +578,7 @@ void Foam::multiphaseMixture::solveAlphas
             )
         );
 
-        surfaceScalarField& alphaPhiCorr = alphaPhiCorrs[phasei];
+        surfaceScalarField& alphaPhi = alphaPhis[phasei];
 
         forAllIter(PtrDictionary<phase>, phases_, iter2)
         {
@@ -589,7 +588,7 @@ void Foam::multiphaseMixture::solveAlphas
 
             surfaceScalarField phir(phic*nHatf(alpha, alpha2));
 
-            alphaPhiCorr += fvc::flux
+            alphaPhi += fvc::flux
             (
                 -fvc::flux(-phir, alpha2, alpharScheme),
                 alpha,
@@ -597,24 +596,25 @@ void Foam::multiphaseMixture::solveAlphas
             );
         }
 
+        // Limit alphaPhi for each phase
         MULES::limit
         (
             1.0/mesh_.time().deltaT().value(),
             geometricOneField(),
             alpha,
             phi_,
-            alphaPhiCorr,
+            alphaPhi,
             zeroField(),
             zeroField(),
             oneField(),
             zeroField(),
-            true
+            false
         );
 
         phasei++;
     }
 
-    MULES::limitSum(alphaPhiCorrs);
+    MULES::limitSum(alphas, alphaPhis, phi_);
 
     rhoPhi_ = dimensionedScalar(dimensionSet(1, 0, -1, 0, 0), 0);
 
@@ -635,9 +635,7 @@ void Foam::multiphaseMixture::solveAlphas
     forAllIter(PtrDictionary<phase>, phases_, iter)
     {
         phase& alpha = iter();
-
-        surfaceScalarField& alphaPhi = alphaPhiCorrs[phasei];
-        alphaPhi += upwind<scalar>(mesh_, phi_).flux(alpha);
+        surfaceScalarField& alphaPhi = alphaPhis[phasei];
 
         MULES::explicitSolve
         (

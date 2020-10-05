@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -65,7 +65,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                  Class fixedMeanFvPatchField Declaration
+                    Class fixedMeanFvPatchField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -112,20 +112,8 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
-        fixedMeanFvPatchField
-        (
-            const fixedMeanFvPatchField<Type>&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchField<Type>> clone() const
-        {
-            return tmp<fvPatchField<Type>>
-            (
-                new fixedMeanFvPatchField<Type>(*this)
-            );
-        }
+        //- Disallow copy without setting internal field reference
+        fixedMeanFvPatchField( const fixedMeanFvPatchField<Type>&) = delete;
 
         //- Copy constructor setting internal field reference
         fixedMeanFvPatchField

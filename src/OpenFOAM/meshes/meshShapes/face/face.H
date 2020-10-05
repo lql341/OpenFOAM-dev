@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -70,7 +70,7 @@ inline bool operator!=(const face& a, const face& b);
 inline Istream& operator>>(Istream&, face&);
 
 /*---------------------------------------------------------------------------*\
-                           Class face Declaration
+                            Class face Declaration
 \*---------------------------------------------------------------------------*/
 
 class face
@@ -142,6 +142,17 @@ public:
     // Static Data Members
 
         static const char* const typeName;
+
+
+    // Static Functions
+
+        //- Return centre point given face points
+        template<class PointField>
+        static vector centre(const PointField& ps);
+
+        //- Return vector area given face points
+        template<class PointField>
+        static vector area(const PointField& ps);
 
 
     // Constructors

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -80,15 +80,6 @@ Foam::freestreamVelocityFvPatchVectorField::freestreamVelocityFvPatchVectorField
 
 Foam::freestreamVelocityFvPatchVectorField::freestreamVelocityFvPatchVectorField
 (
-    const freestreamVelocityFvPatchVectorField& wbppsf
-)
-:
-    mixedFvPatchVectorField(wbppsf)
-{}
-
-
-Foam::freestreamVelocityFvPatchVectorField::freestreamVelocityFvPatchVectorField
-(
     const freestreamVelocityFvPatchVectorField& wbppsf,
     const DimensionedField<vector, volMesh>& iF
 )
@@ -106,7 +97,7 @@ void Foam::freestreamVelocityFvPatchVectorField::updateCoeffs()
         return;
     }
 
-    const Field<vector>& Up = *this;
+    const Field<vector> Up(0.5*(patchInternalField() + *this));
     const Field<scalar> magUp(mag(Up));
 
     const Field<vector> nf(patch().nf());

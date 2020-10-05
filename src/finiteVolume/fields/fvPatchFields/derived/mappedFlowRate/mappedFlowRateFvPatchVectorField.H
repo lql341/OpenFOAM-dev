@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -69,7 +69,7 @@ SourceFiles
 namespace Foam
 {
 /*---------------------------------------------------------------------------*\
-               Class flowRateInletVelocityFvPatch Declaration
+                Class flowRateInletVelocityFvPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 class mappedFlowRateFvPatchVectorField
@@ -122,20 +122,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         mappedFlowRateFvPatchVectorField
         (
             const mappedFlowRateFvPatchVectorField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchVectorField> clone() const
-        {
-            return tmp<fvPatchVectorField>
-            (
-                new mappedFlowRateFvPatchVectorField(*this)
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         mappedFlowRateFvPatchVectorField

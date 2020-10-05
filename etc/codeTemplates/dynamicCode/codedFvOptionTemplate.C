@@ -75,12 +75,8 @@ extern "C"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-//makeRemovablePatchTypeField
-//(
-//    fvPatch${FieldType},
-//    ${typeName}FvOption${SourceType}
-//);
 defineTypeNameAndDebug(${typeName}FvOption${SourceType}, 0);
+
 addRemovableToRunTimeSelectionTable
 (
     option,
@@ -131,7 +127,7 @@ ${typeName}FvOption${SourceType}::
 void ${typeName}FvOption${SourceType}::correct
 (
     GeometricField<${TemplateType}, fvPatchField, volMesh>& fld
-)
+) const
 {
     if (${verbose:-false})
     {
@@ -148,7 +144,7 @@ void ${typeName}FvOption${SourceType}::addSup
 (
     fvMatrix<${TemplateType}>& eqn,
     const label fieldi
-)
+) const
 {
     if (${verbose:-false})
     {
@@ -166,7 +162,7 @@ void ${typeName}FvOption${SourceType}::addSup
     const volScalarField& rho,
     fvMatrix<${TemplateType}>& eqn,
     const label fieldi
-)
+) const
 {
     if (${verbose:-false})
     {
@@ -174,7 +170,26 @@ void ${typeName}FvOption${SourceType}::addSup
     }
 
 //{{{ begin code
-    ${codeAddSup}
+    ${codeAddRhoSup}
+//}}} end code
+}
+
+
+void ${typeName}FvOption${SourceType}::addSup
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    fvMatrix<${TemplateType}>& eqn,
+    const label fieldi
+) const
+{
+    if (${verbose:-false})
+    {
+        Info<<"${typeName}FvOption${SourceType}::addSup()\n";
+    }
+
+//{{{ begin code
+    ${codeAddAlphaRhoSup}
 //}}} end code
 }
 
@@ -183,7 +198,7 @@ void ${typeName}FvOption${SourceType}::constrain
 (
     fvMatrix<${TemplateType}>& eqn,
     const label fieldi
-)
+) const
 {
     if (${verbose:-false})
     {

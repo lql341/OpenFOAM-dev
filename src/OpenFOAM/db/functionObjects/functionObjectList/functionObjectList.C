@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,15 +24,13 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "functionObjectList.H"
-#include "Time.H"
-#include "mapPolyMesh.H"
 #include "argList.H"
 #include "timeControlFunctionObject.H"
 #include "dictionaryEntry.H"
 #include "stringOps.H"
-#include "Tuple2.H"
 #include "etcFiles.H"
-#include "IOdictionary.H"
+#include "wordAndDictionary.H"
+
 
 /* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
 
@@ -219,90 +217,18 @@ void Foam::functionObjectList::checkUnsetEntries
 
 bool Foam::functionObjectList::readFunctionObject
 (
-    const string& funcCall,
+    const string& funcArgs,
     dictionary& functionsDict,
     const string& context,
     HashSet<word>& requiredFields,
     const word& region
 )
 {
-    word funcName(funcCall);
-
-    int argLevel = 0;
-    wordList args;
-
+    word funcName;
+    wordReList args;
     List<Tuple2<word, string>> namedArgs;
-    bool namedArg = false;
-    word argName;
 
-    word::size_type start = 0;
-    word::size_type i = 0;
-
-    for
-    (
-        word::const_iterator iter = funcCall.begin();
-        iter != funcCall.end();
-        ++iter
-    )
-    {
-        char c = *iter;
-
-        if (c == '(')
-        {
-            if (argLevel == 0)
-            {
-                funcName = funcCall(start, i - start);
-                start = i+1;
-            }
-            ++argLevel;
-        }
-        else if (c == ',' || c == ')')
-        {
-            if (argLevel == 1)
-            {
-                if (namedArg)
-                {
-                    namedArgs.append
-                    (
-                        Tuple2<word, string>
-                        (
-                            argName,
-                            funcCall(start, i - start)
-                        )
-                    );
-                    namedArg = false;
-                }
-                else
-                {
-                    args.append
-                    (
-                        string::validate<word>(funcCall(start, i - start))
-                    );
-                }
-                start = i+1;
-            }
-
-            if (c == ')')
-            {
-                if (argLevel == 1)
-                {
-                    break;
-                }
-                --argLevel;
-            }
-        }
-        else if (c == '=')
-        {
-            argName = string::validate<word>(funcCall(start, i - start));
-            start = i+1;
-            namedArg = true;
-        }
-
-        ++i;
-    }
-
-    // Strip whitespace from the function name
-    string::stripInvalid<word>(funcName);
+    dictArgList(funcArgs, funcName, args, namedArgs);
 
     // Search for the functionObject dictionary
     fileName path = findDict(funcName, region);
@@ -322,7 +248,7 @@ bool Foam::functionObjectList::readFunctionObject
     // Delay processing the functionEntries
     // until after the function argument entries have been added
     entry::disableFunctionEntries = true;
-    dictionary funcsDict(fileStream);
+    dictionary funcsDict(funcName, functionsDict, fileStream);
     entry::disableFunctionEntries = false;
 
     dictionary* funcDictPtr = &funcsDict;
@@ -337,41 +263,59 @@ bool Foam::functionObjectList::readFunctionObject
     // Store the funcDict as read for error reporting context
     const dictionary funcDict0(funcDict);
 
-    // Insert the 'field' and/or 'fields' entry corresponding to the optional
-    // arguments or read the 'field' or 'fields' entry and add the required
-    // fields to requiredFields
-    if (args.size() == 1)
+    // Insert the 'field' and/or 'fields' and 'objects' entries corresponding
+    // to both the arguments and the named arguments
+    DynamicList<wordAndDictionary> fieldArgs;
+    forAll(args, i)
     {
-        if (funcDict.found("objects"))
-        {
-            funcDict.set("objects", args);
-        }
-        else
-        {
-            funcDict.set("field", args[0]);
-            funcDict.set("fields", args);
-        }
+        fieldArgs.append(wordAndDictionary(args[i], dictionary::null));
     }
-    else if (args.size() > 1)
-    {
-        if (funcDict.found("objects"))
-        {
-            funcDict.set("objects", args);
-        }
-        else
-        {
-            funcDict.set("fields", args);
-        }
-    }
-
-    // Insert named arguments
     forAll(namedArgs, i)
     {
-        IStringStream entryStream
+        if (namedArgs[i].first() == "field")
+        {
+            IStringStream iss(namedArgs[i].second());
+            fieldArgs.append(wordAndDictionary(iss));
+        }
+        if
         (
-            namedArgs[i].first() + ' ' + namedArgs[i].second() + ';'
-        );
-        funcDict.set(entry::New(entryStream).ptr());
+            namedArgs[i].first() == "fields"
+         || namedArgs[i].first() == "objects"
+        )
+        {
+            IStringStream iss(namedArgs[i].second());
+            fieldArgs.append(List<wordAndDictionary>(iss));
+        }
+    }
+    if (fieldArgs.size() == 1)
+    {
+        funcDict.set("field", fieldArgs[0].first());
+        funcDict.merge(fieldArgs[0].second());
+    }
+    if (fieldArgs.size() >= 1)
+    {
+        funcDict.set("fields", fieldArgs);
+        funcDict.set("objects", fieldArgs);
+    }
+
+    // Insert non-field arguments
+    forAll(namedArgs, i)
+    {
+        if
+        (
+            namedArgs[i].first() != "field"
+         && namedArgs[i].first() != "fields"
+         && namedArgs[i].first() != "objects"
+        )
+        {
+            const Pair<word> dAk(dictAndKeyword(namedArgs[i].first()));
+            dictionary& subDict(funcDict.scopedDict(dAk.first()));
+            IStringStream entryStream
+            (
+                dAk.second() + ' ' + namedArgs[i].second() + ';'
+            );
+            subDict.set(entry::New(entryStream).ptr());
+        }
     }
 
     // Insert the region name if specified
@@ -380,35 +324,60 @@ bool Foam::functionObjectList::readFunctionObject
         funcDict.set("region", region);
     }
 
-    const word funcCallKeyword = string::validate<word>(funcCall);
+    const word funcArgsKeyword = string::validate<word>(funcArgs);
     dictionary funcArgsDict;
-    funcArgsDict.add(funcCallKeyword, funcDict);
+    funcArgsDict.add(funcArgsKeyword, funcDict);
 
     // Re-parse the funcDict to execute the functionEntries
     // now that the function argument entries have been added
     {
         OStringStream os;
         funcArgsDict.write(os);
-        funcArgsDict = dictionary(IStringStream(os.str())());
+        funcArgsDict = dictionary
+        (
+            funcName,
+            functionsDict,
+            IStringStream(os.str())()
+        );
     }
 
-    checkUnsetEntries(funcCall, funcArgsDict, funcDict0, context);
+    // Check for anything in the configuration that has not been set
+    checkUnsetEntries(funcArgs, funcArgsDict, funcDict0, context);
 
-    // Lookup the field and fields entries from the now expanded funcDict
-    // and insert into the requiredFields
-    dictionary& expandedFuncDict = funcArgsDict.subDict(funcCallKeyword);
+    // Lookup the field, fields and objects entries from the now expanded
+    // funcDict and insert into the requiredFields
+    dictionary& expandedFuncDict = funcArgsDict.subDict(funcArgsKeyword);
+    if (functionObject::debug)
+    {
+        InfoInFunction
+            << nl << incrIndent << indent
+            << funcArgs << expandedFuncDict
+            << decrIndent << endl;
+    }
     if (expandedFuncDict.found("field"))
     {
         requiredFields.insert(word(expandedFuncDict.lookup("field")));
     }
-    else if (expandedFuncDict.found("fields"))
+    if (expandedFuncDict.found("fields"))
     {
-        requiredFields.insert(wordList(expandedFuncDict.lookup("fields")));
+        List<wordAndDictionary> fields(expandedFuncDict.lookup("fields"));
+        forAll(fields, i)
+        {
+            requiredFields.insert(fields[i].first());
+        }
+    }
+    if (expandedFuncDict.found("objects"))
+    {
+        List<wordAndDictionary> objects(expandedFuncDict.lookup("objects"));
+        forAll(objects, i)
+        {
+            requiredFields.insert(objects[i].first());
+        }
     }
 
     // Merge this functionObject dictionary into functionsDict
     functionsDict.merge(funcArgsDict);
-    functionsDict.subDict(funcCallKeyword).name() = funcDict.name();
+    functionsDict.subDict(funcArgsKeyword).name() = funcDict.name();
 
     return true;
 }
@@ -746,7 +715,7 @@ bool Foam::functionObjectList::read()
 
         const dictionary& functionsDict = entryPtr->dict();
 
-        const_cast<Time&>(time_).libs().open
+        libs.open
         (
             functionsDict,
             "libs",

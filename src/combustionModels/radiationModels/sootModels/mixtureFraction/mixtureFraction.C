@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,9 +28,8 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-Foam::radiationModels::sootModels::mixtureFraction<ReactionThermo, ThermoType>::
-mixtureFraction
+template<class ThermoType>
+Foam::radiationModels::sootModels::mixtureFraction<ThermoType>::mixtureFraction
 (
     const dictionary& dict,
     const fvMesh& mesh,
@@ -60,19 +59,14 @@ mixtureFraction
     ),
     mapFieldMax_(1)
 {
-    const combustionModels::singleStepCombustion<ReactionThermo, ThermoType>&
-    combustion
-    (
-        mesh.lookupObject
-        <
-            combustionModels::singleStepCombustion<ReactionThermo, ThermoType>
-        >
+    const combustionModels::singleStepCombustion<ThermoType>& combustion =
+        mesh.lookupObject<combustionModels::singleStepCombustion<ThermoType>>
         (
             combustionModel::combustionPropertiesName
-        )
-    );
+        );
 
-    const multiComponentMixture<ThermoType>& mixture(combustion.mixture());
+    const multiComponentMixture<ThermoType>& mixture = combustion.mixture();
+
     const Reaction<ThermoType>& reaction = combustion.reaction();
 
     scalar totalMol = 0;
@@ -92,7 +86,7 @@ mixtureFraction
         const label speciei = reaction.rhs()[i].index;
         const scalar stoichCoeff = reaction.rhs()[i].stoichCoeff;
         Xi[i] = mag(stoichCoeff)/totalMol;
-        Wm += Xi[i]*mixture.speciesData()[speciei].W();
+        Wm += Xi[i]*mixture.specieThermos()[speciei].W();
     }
 
     scalarList Yprod0(mixture.species().size(), 0.0);
@@ -100,7 +94,7 @@ mixtureFraction
     forAll(reaction.rhs(), i)
     {
         const label speciei = reaction.rhs()[i].index;
-        Yprod0[speciei] = mixture.speciesData()[speciei].W()/Wm*Xi[i];
+        Yprod0[speciei] = mixture.specieThermos()[speciei].W()/Wm*Xi[i];
     }
 
     const scalar XSoot = nuSoot_/totalMol;
@@ -124,18 +118,16 @@ mixtureFraction
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-Foam::radiationModels::sootModels::mixtureFraction<ReactionThermo, ThermoType>::
+template<class ThermoType>
+Foam::radiationModels::sootModels::mixtureFraction<ThermoType>::
 ~mixtureFraction()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-void
-Foam::radiationModels::sootModels::mixtureFraction<ReactionThermo, ThermoType>::
-correct()
+template<class ThermoType>
+void Foam::radiationModels::sootModels::mixtureFraction<ThermoType>::correct()
 {
     const volScalarField& mapField =
         mesh_.lookupObject<volScalarField>(mappingFieldName_);

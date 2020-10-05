@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -37,8 +37,8 @@ namespace RASModels
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-template<class BasicTurbulenceModel>
-void kEpsilonLopesdaCosta<BasicTurbulenceModel>::setPorosityCoefficient
+template<class BasicMomentumTransportModel>
+void kEpsilonLopesdaCosta<BasicMomentumTransportModel>::setPorosityCoefficient
 (
     volScalarField::Internal& C,
     const porosityModels::powerLawLopesdaCosta& pm
@@ -65,8 +65,8 @@ void kEpsilonLopesdaCosta<BasicTurbulenceModel>::setPorosityCoefficient
 }
 
 
-template<class BasicTurbulenceModel>
-void kEpsilonLopesdaCosta<BasicTurbulenceModel>::setCdSigma
+template<class BasicMomentumTransportModel>
+void kEpsilonLopesdaCosta<BasicMomentumTransportModel>::setCdSigma
 (
     volScalarField::Internal& C,
     const porosityModels::powerLawLopesdaCosta& pm
@@ -94,10 +94,11 @@ void kEpsilonLopesdaCosta<BasicTurbulenceModel>::setCdSigma
 }
 
 
-template<class BasicTurbulenceModel>
-void kEpsilonLopesdaCosta<BasicTurbulenceModel>::setPorosityCoefficients()
+template<class BasicMomentumTransportModel>
+void kEpsilonLopesdaCosta<BasicMomentumTransportModel>::
+setPorosityCoefficients()
 {
-    fv::options::optionList& fvOptions(fv::options::New(this->mesh_));
+    const fv::options::optionList& fvOptions(fv::options::New(this->mesh_));
 
     forAll(fvOptions, i)
     {
@@ -131,19 +132,17 @@ void kEpsilonLopesdaCosta<BasicTurbulenceModel>::setPorosityCoefficients()
 }
 
 
-template<class BasicTurbulenceModel>
-void kEpsilonLopesdaCosta<BasicTurbulenceModel>::correctNut()
+template<class BasicMomentumTransportModel>
+void kEpsilonLopesdaCosta<BasicMomentumTransportModel>::correctNut()
 {
     this->nut_ = Cmu_*sqr(k_)/epsilon_;
     this->nut_.correctBoundaryConditions();
     fv::options::New(this->mesh_).correct(this->nut_);
-
-    BasicTurbulenceModel::correctNut();
 }
 
 
-template<class BasicTurbulenceModel>
-tmp<fvScalarMatrix> kEpsilonLopesdaCosta<BasicTurbulenceModel>::kSource
+template<class BasicMomentumTransportModel>
+tmp<fvScalarMatrix> kEpsilonLopesdaCosta<BasicMomentumTransportModel>::kSource
 (
     const volScalarField::Internal& magU,
     const volScalarField::Internal& magU3
@@ -153,9 +152,9 @@ tmp<fvScalarMatrix> kEpsilonLopesdaCosta<BasicTurbulenceModel>::kSource
 }
 
 
-template<class BasicTurbulenceModel>
+template<class BasicMomentumTransportModel>
 tmp<fvScalarMatrix>
-kEpsilonLopesdaCosta<BasicTurbulenceModel>::epsilonSource
+kEpsilonLopesdaCosta<BasicMomentumTransportModel>::epsilonSource
 (
     const volScalarField::Internal& magU,
     const volScalarField::Internal& magU3
@@ -172,8 +171,8 @@ kEpsilonLopesdaCosta<BasicTurbulenceModel>::epsilonSource
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class BasicTurbulenceModel>
-kEpsilonLopesdaCosta<BasicTurbulenceModel>::kEpsilonLopesdaCosta
+template<class BasicMomentumTransportModel>
+kEpsilonLopesdaCosta<BasicMomentumTransportModel>::kEpsilonLopesdaCosta
 (
     const alphaField& alpha,
     const rhoField& rho,
@@ -181,11 +180,10 @@ kEpsilonLopesdaCosta<BasicTurbulenceModel>::kEpsilonLopesdaCosta
     const surfaceScalarField& alphaRhoPhi,
     const surfaceScalarField& phi,
     const transportModel& transport,
-    const word& propertiesName,
     const word& type
 )
 :
-    eddyViscosity<RASModel<BasicTurbulenceModel>>
+    eddyViscosity<RASModel<BasicMomentumTransportModel>>
     (
         type,
         alpha,
@@ -193,8 +191,7 @@ kEpsilonLopesdaCosta<BasicTurbulenceModel>::kEpsilonLopesdaCosta
         U,
         alphaRhoPhi,
         phi,
-        transport,
-        propertiesName
+        transport
     ),
 
     Cmu_
@@ -373,10 +370,10 @@ kEpsilonLopesdaCosta<BasicTurbulenceModel>::kEpsilonLopesdaCosta
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class BasicTurbulenceModel>
-bool kEpsilonLopesdaCosta<BasicTurbulenceModel>::read()
+template<class BasicMomentumTransportModel>
+bool kEpsilonLopesdaCosta<BasicMomentumTransportModel>::read()
 {
-    if (eddyViscosity<RASModel<BasicTurbulenceModel>>::read())
+    if (eddyViscosity<RASModel<BasicMomentumTransportModel>>::read())
     {
         return true;
     }
@@ -387,8 +384,8 @@ bool kEpsilonLopesdaCosta<BasicTurbulenceModel>::read()
 }
 
 
-template<class BasicTurbulenceModel>
-void kEpsilonLopesdaCosta<BasicTurbulenceModel>::correct()
+template<class BasicMomentumTransportModel>
+void kEpsilonLopesdaCosta<BasicMomentumTransportModel>::correct()
 {
     if (!this->turbulence_)
     {
@@ -401,9 +398,9 @@ void kEpsilonLopesdaCosta<BasicTurbulenceModel>::correct()
     const surfaceScalarField& alphaRhoPhi = this->alphaRhoPhi_;
     const volVectorField& U = this->U_;
     volScalarField& nut = this->nut_;
-    fv::options& fvOptions(fv::options::New(this->mesh_));
+    const fv::options& fvOptions(fv::options::New(this->mesh_));
 
-    eddyViscosity<RASModel<BasicTurbulenceModel>>::correct();
+    eddyViscosity<RASModel<BasicMomentumTransportModel>>::correct();
 
     volScalarField::Internal divU
     (

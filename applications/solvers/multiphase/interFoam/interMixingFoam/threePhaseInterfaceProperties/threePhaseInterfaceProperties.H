@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -46,7 +46,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-              Class threePhaseInterfaceProperties Declaration
+                Class threePhaseInterfaceProperties Declaration
 \*---------------------------------------------------------------------------*/
 
 class threePhaseInterfaceProperties
@@ -86,10 +86,6 @@ class threePhaseInterfaceProperties
 
 
 public:
-
-    //- Conversion factor for degrees into radians
-    static const scalar convertToRad;
-
 
     // Constructors
 

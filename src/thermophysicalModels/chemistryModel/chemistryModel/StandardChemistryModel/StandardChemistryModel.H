@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -38,7 +38,7 @@ SourceFiles
 #ifndef StandardChemistryModel_H
 #define StandardChemistryModel_H
 
-#include "BasicChemistryModel.H"
+#include "basicChemistryModel.H"
 #include "ReactionList.H"
 #include "ODESystem.H"
 #include "volFields.H"
@@ -52,13 +52,13 @@ namespace Foam
 class fvMesh;
 
 /*---------------------------------------------------------------------------*\
-                      Class StandardChemistryModel Declaration
+                   Class StandardChemistryModel Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class ReactionThermo, class ThermoType>
+template<class ThermoType>
 class StandardChemistryModel
 :
-    public BasicChemistryModel<ReactionThermo>,
+    public basicChemistryModel,
     public ODESystem
 {
     // Private Member Functions
@@ -71,16 +71,13 @@ class StandardChemistryModel
 
 protected:
 
-    typedef ThermoType thermoType;
-
-
     // Protected data
 
         //- Reference to the field of specie mass fractions
         const PtrList<volScalarField>& Y_;
 
         //- Thermodynamic data of the species
-        const PtrList<ThermoType>& specieThermo_;
+        const PtrList<ThermoType>& specieThermos_;
 
         //- Reactions
         const ReactionList<ThermoType> reactions_;
@@ -120,10 +117,10 @@ public:
     // Constructors
 
         //- Construct from thermo
-        StandardChemistryModel(const ReactionThermo& thermo);
+        StandardChemistryModel(const fluidReactionThermo& thermo);
 
         //- Disallow default bitwise copy construction
-        StandardChemistryModel(const StandardChemistryModel&);
+        StandardChemistryModel(const StandardChemistryModel&) = delete;
 
 
     //- Destructor
@@ -136,7 +133,7 @@ public:
         inline const PtrList<Reaction<ThermoType>>& reactions() const;
 
         //- Thermodynamic data of the species
-        inline const PtrList<ThermoType>& specieThermo() const;
+        inline const PtrList<ThermoType>& specieThermos() const;
 
         //- The number of species
         virtual inline label nSpecie() const;

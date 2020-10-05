@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -44,7 +44,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                 Class processorCyclicPointPatchField Declaration
+               Class processorCyclicPointPatchField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -93,18 +93,6 @@ public:
             const pointPatchFieldMapper&
         );
 
-        //- Construct and return a clone
-        virtual autoPtr<pointPatchField<Type>> clone() const
-        {
-            return autoPtr<pointPatchField<Type>>
-            (
-                new processorCyclicPointPatchField<Type>
-                (
-                    *this
-                )
-            );
-        }
-
         //- Construct as copy setting internal field reference
         processorCyclicPointPatchField
         (
@@ -148,16 +136,6 @@ public:
                 {
                     return false;
                 }
-            }
-
-            //- Does the patch field perform the transformation
-            virtual bool doTransform() const
-            {
-                return
-                   !(
-                        pTraits<Type>::rank == 0
-                     || procPatch_.procPolyPatch().parallel()
-                    );
             }
 
 

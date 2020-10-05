@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,7 +39,6 @@ SourceFiles
 #include "volFields.H"
 #include "surfaceFields.H"
 #include "rhoThermo.H"
-#include "psiThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,12 +46,12 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class multiphaseMixtureThermo Declaration
+                   Class multiphaseMixtureThermo Declaration
 \*---------------------------------------------------------------------------*/
 
 class multiphaseMixtureThermo
 :
-    public psiThermo
+    public rhoThermo::composite
 {
 public:
 
@@ -144,9 +143,6 @@ private:
         //- Stabilisation for normalisation of the interface normal
         const dimensionedScalar deltaN_;
 
-        //- Conversion factor for degrees into radians
-        static const scalar convertToRad;
-
 
     // Private Member Functions
 
@@ -232,6 +228,9 @@ public:
             return rhoPhi_;
         }
 
+        //- Correct the thermodynamics of each phase
+        virtual void correctThermo();
+
         //- Update properties
         virtual void correct();
 
@@ -289,6 +288,31 @@ public:
                 const label patchi
             ) const;
 
+            //- Sensible enthalpy [J/kg]
+            virtual tmp<volScalarField> hs() const;
+
+            //- Sensible enthalpy
+            //  for given pressure and temperature [J/kg]
+            virtual tmp<volScalarField> hs
+            (
+                const volScalarField& p,
+                const volScalarField& T
+            ) const;
+
+            //- Sensible enthalpy for cell-set [J/kg]
+            virtual tmp<scalarField> hs
+            (
+                const scalarField& T,
+                const labelList& cells
+            ) const;
+
+            //- Sensible enthalpy for patch [J/kg]
+            virtual tmp<scalarField> hs
+            (
+                const scalarField& T,
+                const label patchi
+            ) const;
+
             //- Absolute enthalpy [J/kg]
             virtual tmp<volScalarField> ha() const;
 
@@ -314,8 +338,16 @@ public:
                 const label patchi
             ) const;
 
-            //- Chemical enthalpy [J/kg]
+            //- Enthalpy of formation [J/kg]
             virtual tmp<volScalarField> hc() const;
+
+            //- Temperature from enthalpy/internal energy
+            virtual tmp<volScalarField> THE
+            (
+                const volScalarField& h,
+                const volScalarField& p,
+                const volScalarField& T0    // starting temperature
+            ) const;
 
             //- Temperature from enthalpy/internal energy for cell-set
             virtual tmp<scalarField> THE
@@ -335,12 +367,6 @@ public:
 
 
         // Fields derived from thermodynamic state variables
-
-            //- Density [kg/m^3]
-            virtual tmp<volScalarField> rho() const;
-
-            //- Density for patch [kg/m^3]
-            virtual tmp<scalarField> rho(const label patchi) const;
 
             //- Heat capacity at constant pressure [J/kg/K]
             virtual tmp<volScalarField> Cp() const;

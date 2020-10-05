@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -78,19 +78,6 @@ inclinedFilmNusseltInletVelocityFvPatchVectorField
 Foam::inclinedFilmNusseltInletVelocityFvPatchVectorField::
 inclinedFilmNusseltInletVelocityFvPatchVectorField
 (
-    const inclinedFilmNusseltInletVelocityFvPatchVectorField& fmfrpvf
-)
-:
-    fixedValueFvPatchVectorField(fmfrpvf),
-    GammaMean_(fmfrpvf.GammaMean_().clone().ptr()),
-    a_(fmfrpvf.a_().clone().ptr()),
-    omega_(fmfrpvf.omega_().clone().ptr())
-{}
-
-
-Foam::inclinedFilmNusseltInletVelocityFvPatchVectorField::
-inclinedFilmNusseltInletVelocityFvPatchVectorField
-(
     const inclinedFilmNusseltInletVelocityFvPatchVectorField& fmfrpvf,
     const DimensionedField<vector, volMesh>& iF
 )
@@ -113,7 +100,7 @@ void Foam::inclinedFilmNusseltInletVelocityFvPatchVectorField::updateCoeffs()
 
     const label patchi = patch().index();
 
-    // retrieve the film region from the database
+    // Retrieve the film region from the database
 
     const regionModels::regionModel& region =
         db().time().lookupObject<regionModels::regionModel>
@@ -127,12 +114,18 @@ void Foam::inclinedFilmNusseltInletVelocityFvPatchVectorField::updateCoeffs()
             const regionModels::surfaceFilmModels::kinematicSingleLayer&
         >(region);
 
-    // calculate the vector tangential to the patch
+    // Calculate the vector tangential to the patch
     // note: normal pointing into the domain
     const vectorField n(-patch().nf());
 
-    // TODO: currently re-evaluating the entire gTan field to return this patch
-    const scalarField gTan(film.gTan()().boundaryField()[patchi] & n);
+    const scalarField gTan
+    (
+        (
+            film.g().value()
+          - film.nHat().boundaryField()[patchi]
+           *(film.g().value() & film.nHat().boundaryField()[patchi])
+        ) & n
+    );
 
     if (patch().size() && (max(mag(gTan)) < small))
     {

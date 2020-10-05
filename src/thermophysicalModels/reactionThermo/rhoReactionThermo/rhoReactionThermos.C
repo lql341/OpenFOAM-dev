@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,547 +23,55 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "makeReactionThermo.H"
+#include "coefficientMultiComponentMixture.H"
+#include "valueMultiComponentMixture.H"
+#include "singleComponentMixture.H"
 
+#include "rhoThermo.H"
 #include "rhoReactionThermo.H"
 #include "heRhoThermo.H"
 
-#include "specie.H"
-#include "perfectGas.H"
-#include "incompressiblePerfectGas.H"
-#include "hConstThermo.H"
-#include "janafThermo.H"
-#include "sensibleEnthalpy.H"
-#include "thermo.H"
-#include "rhoConst.H"
-#include "rPolynomial.H"
-#include "adiabaticPerfectFluid.H"
-#include "Boussinesq.H"
+#include "forGases.H"
+#include "forLiquids.H"
+#include "forPolynomials.H"
+#include "forTabulated.H"
+#include "makeReactionThermo.H"
 
-#include "constTransport.H"
-#include "sutherlandTransport.H"
-#include "WLFTransport.H"
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "homogeneousMixture.H"
-#include "inhomogeneousMixture.H"
-#include "veryInhomogeneousMixture.H"
-#include "multiComponentMixture.H"
-#include "singleComponentMixture.H"
+#define makeRhoReactionThermos(Mixture, ThermoPhysics)                         \
+    makeReactionThermos                                                        \
+    (                                                                          \
+        rhoThermo,                                                             \
+        rhoReactionThermo,                                                     \
+        heRhoThermo,                                                           \
+        Mixture,                                                               \
+        ThermoPhysics                                                          \
+    )
 
-#include "thermoPhysicsTypes.H"
+#define makeRhoReactionThermo(Mixture, ThermoPhysics)                          \
+    makeReactionThermo                                                         \
+    (                                                                          \
+        rhoReactionThermo,                                                     \
+        heRhoThermo,                                                           \
+        Mixture,                                                               \
+        ThermoPhysics                                                          \
+    )
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+    forGases(makeRhoReactionThermos, coefficientMultiComponentMixture);
+    forGases(makeRhoReactionThermo, singleComponentMixture);
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    forLiquids(makeRhoReactionThermos, coefficientMultiComponentMixture);
+    forLiquids(makeRhoReactionThermo, singleComponentMixture);
 
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    homogeneousMixture,
-    constTransport,
-    sensibleEnthalpy,
-    hConstThermo,
-    perfectGas,
-    specie
-);
+    forPolynomials(makeRhoReactionThermos, coefficientMultiComponentMixture);
+    forPolynomials(makeRhoReactionThermo, singleComponentMixture);
 
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    inhomogeneousMixture,
-    constTransport,
-    sensibleEnthalpy,
-    hConstThermo,
-    perfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    veryInhomogeneousMixture,
-    constTransport,
-    sensibleEnthalpy,
-    hConstThermo,
-    perfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    homogeneousMixture,
-    sutherlandTransport,
-    sensibleEnthalpy,
-    janafThermo,
-    perfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    inhomogeneousMixture,
-    sutherlandTransport,
-    sensibleEnthalpy,
-    janafThermo,
-    perfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    veryInhomogeneousMixture,
-    sutherlandTransport,
-    sensibleEnthalpy,
-    janafThermo,
-    perfectGas,
-    specie
-);
-
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    homogeneousMixture,
-    constTransport,
-    sensibleEnthalpy,
-    hConstThermo,
-    incompressiblePerfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    inhomogeneousMixture,
-    constTransport,
-    sensibleEnthalpy,
-    hConstThermo,
-    incompressiblePerfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    veryInhomogeneousMixture,
-    constTransport,
-    sensibleEnthalpy,
-    hConstThermo,
-    incompressiblePerfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    homogeneousMixture,
-    sutherlandTransport,
-    sensibleEnthalpy,
-    janafThermo,
-    incompressiblePerfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    inhomogeneousMixture,
-    sutherlandTransport,
-    sensibleEnthalpy,
-    janafThermo,
-    incompressiblePerfectGas,
-    specie
-);
-
-makeReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    veryInhomogeneousMixture,
-    sutherlandTransport,
-    sensibleEnthalpy,
-    janafThermo,
-    incompressiblePerfectGas,
-    specie
-);
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-// Multi-component thermo for internal energy
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constGasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    gasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constIncompressibleGasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    incompressibleGasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    icoPoly8EThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constFluidEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constAdiabaticFluidEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constEThermoPhysics
-);
-
-
-// Single-component thermo for internal energy
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constGasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    gasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constIncompressibleGasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    incompressibleGasEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    icoPoly8EThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constFluidEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constAdiabaticFluidEThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constEThermoPhysics
-);
-
-makeReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constTransport,
-    sensibleInternalEnergy,
-    hConstThermo,
-    Boussinesq,
-    specie
-);
-
-makeReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    sutherlandTransport,
-    sensibleInternalEnergy,
-    janafThermo,
-    Boussinesq,
-    specie
-);
-
-makeReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    WLFTransport,
-    sensibleInternalEnergy,
-    eConstThermo,
-    rhoConst,
-    specie
-);
-
-
-
-// Multi-component thermo for sensible enthalpy
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constGasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    gasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constIncompressibleGasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    incompressibleGasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    icoPoly8HThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constFluidHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constAdiabaticFluidHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermos
-(
-    rhoThermo,
-    rhoReactionThermo,
-    heRhoThermo,
-    multiComponentMixture,
-    constHThermoPhysics
-);
-
-
-// Single-component thermo for sensible enthalpy
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constGasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    gasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constIncompressibleGasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    incompressibleGasHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    icoPoly8HThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constFluidHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constAdiabaticFluidHThermoPhysics
-);
-
-makeThermoPhysicsReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constHThermoPhysics
-);
-
-makeReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    constTransport,
-    sensibleEnthalpy,
-    hConstThermo,
-    Boussinesq,
-    specie
-);
-
-makeReactionThermo
-(
-    rhoReactionThermo,
-    heRhoThermo,
-    singleComponentMixture,
-    sutherlandTransport,
-    sensibleEnthalpy,
-    janafThermo,
-    Boussinesq,
-    specie
-);
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
+    forTabulated(makeRhoReactionThermos, valueMultiComponentMixture);
+}
 
 // ************************************************************************* //

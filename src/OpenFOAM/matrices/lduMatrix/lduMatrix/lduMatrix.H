@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -74,7 +74,7 @@ Ostream& operator<<(Ostream&, const InfoProxy<lduMatrix>&);
 
 
 /*---------------------------------------------------------------------------*\
-                           Class lduMatrix Declaration
+                          Class lduMatrix Declaration
 \*---------------------------------------------------------------------------*/
 
 class lduMatrix
@@ -595,17 +595,44 @@ public:
 
             bool diagonal() const
             {
-                return (diagPtr_ && !lowerPtr_ && !upperPtr_);
+                return
+                (
+                    diagPtr_
+                 && Pstream::parRun()
+                    ?
+                        !lowerPtr_ && !upperPtr_
+                    :
+                        !(lowerPtr_ && lowerPtr_->size())
+                     && !(upperPtr_ && upperPtr_->size())
+                );
             }
 
             bool symmetric() const
             {
-                return (diagPtr_ && (!lowerPtr_ && upperPtr_));
+                return
+                (
+                    diagPtr_
+                 && Pstream::parRun()
+                    ?
+                        !lowerPtr_ && upperPtr_
+                    :
+                        !(lowerPtr_ && lowerPtr_->size())
+                     && (upperPtr_ && upperPtr_->size())
+                );
             }
 
             bool asymmetric() const
             {
-                return (diagPtr_ && lowerPtr_ && upperPtr_);
+                return
+                (
+                    diagPtr_
+                 && Pstream::parRun()
+                    ?
+                        lowerPtr_ && upperPtr_
+                    :
+                        (lowerPtr_ && lowerPtr_->size())
+                     && (upperPtr_ && upperPtr_->size())
+                );
             }
 
 
@@ -724,6 +751,9 @@ public:
 
         void operator*=(const scalarField&);
         void operator*=(scalar);
+
+        void operator/=(const scalarField&);
+        void operator/=(scalar);
 
 
     // Ostream operator

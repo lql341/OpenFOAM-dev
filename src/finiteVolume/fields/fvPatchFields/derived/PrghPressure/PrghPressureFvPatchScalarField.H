@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -58,7 +58,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-         Class PrghPressureFvPatchScalarField Declaration
+               Class PrghPressureFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class PressureFvPatchScalarField>
@@ -100,20 +100,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         PrghPressureFvPatchScalarField
         (
             const PrghPressureFvPatchScalarField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchScalarField> clone() const
-        {
-            return tmp<fvPatchScalarField >
-            (
-                new PrghPressureFvPatchScalarField(*this)
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         PrghPressureFvPatchScalarField

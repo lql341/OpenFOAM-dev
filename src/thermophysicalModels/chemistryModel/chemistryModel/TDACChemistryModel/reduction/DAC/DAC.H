@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2016-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -89,6 +89,8 @@ SourceFiles
 #ifndef DAC_H
 #define DAC_H
 
+#include "chemistryReductionMethod.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -97,12 +99,12 @@ namespace chemistryReductionMethods
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class DAC Declaration
+                             Class DAC Declaration
 \*---------------------------------------------------------------------------*/
-template<class CompType, class ThermoType>
+template<class ThermoType>
 class DAC
 :
-    public chemistryReductionMethod<CompType, ThermoType>
+    public chemistryReductionMethod<ThermoType>
 {
     // Private Data
 
@@ -134,7 +136,7 @@ public:
         DAC
         (
             const IOdictionary& dict,
-            TDACChemistryModel<CompType, ThermoType>& chemistry
+            TDACChemistryModel<ThermoType>& chemistry
         );
 
 

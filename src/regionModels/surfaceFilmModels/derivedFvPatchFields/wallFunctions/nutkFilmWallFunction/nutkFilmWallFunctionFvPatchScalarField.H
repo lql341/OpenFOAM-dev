@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -62,7 +62,7 @@ namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-         Class nutkFilmWallFunctionFvPatchScalarField Declaration
+           Class nutkFilmWallFunctionFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
 class nutkFilmWallFunctionFvPatchScalarField
@@ -83,7 +83,7 @@ protected:
     // Protected member functions
 
         //- Calculate the turbulence viscosity
-        virtual tmp<scalarField> calcNut() const;
+        virtual tmp<scalarField> nut() const;
 
         //- Calculate the friction velocity
         virtual tmp<scalarField> calcUTau(const scalarField& magGradU) const;
@@ -123,20 +123,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         nutkFilmWallFunctionFvPatchScalarField
         (
             const nutkFilmWallFunctionFvPatchScalarField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchScalarField> clone() const
-        {
-            return tmp<fvPatchScalarField>
-            (
-                new nutkFilmWallFunctionFvPatchScalarField(*this)
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         nutkFilmWallFunctionFvPatchScalarField

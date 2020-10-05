@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,14 +24,12 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "semiPermeableBaffleMassFractionFvPatchScalarField.H"
-#include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
 #include "surfaceFields.H"
-#include "turbulentFluidThermoModel.H"
-#include "psiReactionThermo.H"
-#include "rhoReactionThermo.H"
-
+#include "thermophysicalTransportModel.H"
+#include "basicSpecieMixture.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -77,17 +75,6 @@ semiPermeableBaffleMassFractionFvPatchScalarField
 Foam::semiPermeableBaffleMassFractionFvPatchScalarField::
 semiPermeableBaffleMassFractionFvPatchScalarField
 (
-    const semiPermeableBaffleMassFractionFvPatchScalarField& ptf
-)
-:
-    mappedPatchBase(ptf.patch().patch(), ptf),
-    specieTransferMassFractionFvPatchScalarField(ptf)
-{}
-
-
-Foam::semiPermeableBaffleMassFractionFvPatchScalarField::
-semiPermeableBaffleMassFractionFvPatchScalarField
-(
     const semiPermeableBaffleMassFractionFvPatchScalarField& ptf,
     const DimensionedField<scalar, volMesh>& iF
 )
@@ -124,18 +111,18 @@ Foam::semiPermeableBaffleMassFractionFvPatchScalarField::calcPhiYp() const
     mappedPatchBase::map().distribute(nbrYc);
 
     // Get the patch delta coefficients multiplied by the diffusivity
-    const compressible::turbulenceModel& turb =
-        db().lookupObject<compressible::turbulenceModel>
+    const thermophysicalTransportModel& ttm =
+        db().lookupObject<thermophysicalTransportModel>
         (
-            turbulenceModel::propertiesName
+            thermophysicalTransportModel::typeName
         );
     const scalarField alphaEffDeltap
     (
-        turb.alphaEff(patch().index())*patch().deltaCoeffs()
+        ttm.alphaEff(patch().index())*patch().deltaCoeffs()
     );
     scalarField nbrAlphaEffDeltap
     (
-        turb.alphaEff(nbrPatch.index())*nbrPatch.deltaCoeffs()
+        ttm.alphaEff(nbrPatch.index())*nbrPatch.deltaCoeffs()
     );
     mappedPatchBase::map().distribute(nbrAlphaEffDeltap);
 

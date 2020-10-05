@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,7 +36,8 @@ SourceFiles
 #define combustionModel_H
 
 #include "IOdictionary.H"
-#include "turbulentFluidThermoModel.H"
+#include "fluidThermoMomentumTransportModel.H"
+#include "fluidReactionThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,7 +45,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class combustionModel Declaration
+                       Class combustionModel Declaration
 \*---------------------------------------------------------------------------*/
 
 class combustionModel
@@ -56,7 +57,7 @@ class combustionModel
         //- Construct the base IO object
         IOobject createIOobject
         (
-            const basicThermo& thermo,
+            const fluidReactionThermo& thermo,
             const word& combustionProperties
         ) const;
 
@@ -68,8 +69,11 @@ protected:
         //- Reference to the mesh database
         const fvMesh& mesh_;
 
+        //- Reference to the thermo
+        const fluidReactionThermo& thermo_;
+
         //- Reference to the turbulence model
-        const compressibleTurbulenceModel& turb_;
+        const compressibleMomentumTransportModel& turb_;
 
         //- Dictionary of the model
         dictionary coeffs_;
@@ -87,30 +91,45 @@ public:
     static const word combustionPropertiesName;
 
 
+    //- Declare run-time constructor selection tables
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        combustionModel,
+        dictionary,
+        (
+            const word& modelType,
+            const fluidReactionThermo& thermo,
+            const compressibleMomentumTransportModel& turb,
+            const word& combustionProperties
+        ),
+        (modelType, thermo, turb, combustionProperties)
+    );
+
+
     // Constructors
 
         //- Construct from components
         combustionModel
         (
             const word& modelType,
-            const basicThermo& thermo,
-            const compressibleTurbulenceModel& turb,
-            const word& combustionProperties=combustionPropertiesName
+            const fluidReactionThermo& thermo,
+            const compressibleMomentumTransportModel& turb,
+            const word& combustionProperties = combustionPropertiesName
         );
 
         //- Disallow default bitwise copy construction
-        combustionModel(const combustionModel&);
+        combustionModel(const combustionModel&) = delete;
 
 
     // Selectors
 
-        //- Generic New for each of the related chemistry model
-        template<class CombustionModel>
-        static autoPtr<CombustionModel> New
+        //- Select using thermo and turbulence
+        static autoPtr<combustionModel> New
         (
-            const typename CombustionModel::reactionThermo& thermo,
-            const compressibleTurbulenceModel& turb,
-            const word& combustionProperties
+            const fluidReactionThermo& thermo,
+            const compressibleMomentumTransportModel& turb,
+            const word& combustionProperties = combustionPropertiesName
         );
 
 
@@ -123,8 +142,11 @@ public:
         //- Return const access to the mesh database
         inline const fvMesh& mesh() const;
 
+        //- Return const access to the thermo
+        inline const fluidReactionThermo& thermo() const;
+
         //- Return access to turbulence
-        inline const compressibleTurbulenceModel& turbulence() const;
+        inline const compressibleMomentumTransportModel& turbulence() const;
 
         //- Return const access to rho
         inline const volScalarField& rho() const;
@@ -162,10 +184,6 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #include "combustionModelI.H"
-
-#ifdef NoRepository
-    #include "combustionModelTemplates.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

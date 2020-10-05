@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -53,22 +53,24 @@ class multiComponentMixture
 :
     public basicSpecieMixture
 {
+
+public:
+
+    //- The type of thermodynamics this mixture is instantiated for
+    typedef ThermoType thermoType;
+
+
+private:
+
     // Private Data
 
-        //- Species data
-        PtrList<ThermoType> speciesData_;
+        //- List of specie thermo
+        PtrList<ThermoType> specieThermos_;
 
         typedef HashTable<List<specieElement>> speciesCompositionTable;
 
         //- Table of species composition
         speciesCompositionTable speciesComposition_;
-
-        //- Temporary storage for the cell/face mixture thermo data
-        mutable ThermoType mixture_;
-
-        //- Temporary storage for the volume weighted
-        //  cell/face mixture thermo data
-        mutable ThermoType mixtureVol_;
 
 
     // Private Member Functions
@@ -89,10 +91,6 @@ class multiComponentMixture
 
 public:
 
-    //- The type of thermodynamics this mixture is instantiated for
-    typedef ThermoType thermoType;
-
-
     // Constructors
 
         //- Construct from dictionary, mesh and phase name
@@ -112,16 +110,10 @@ public:
 
     // Member Functions
 
-        //- Return the instantiated type name
-        static word typeName()
-        {
-            return "multiComponentMixture<" + ThermoType::typeName() + '>';
-        }
-
         //- Return the raw specie thermodynamic data
-        const PtrList<ThermoType>& speciesData() const
+        const PtrList<ThermoType>& specieThermos() const
         {
-            return speciesData_;
+            return specieThermos_;
         }
 
         //- Return the table of species composition
@@ -130,36 +122,13 @@ public:
             return speciesComposition_;
         }
 
-        const ThermoType& cellMixture(const label celli) const;
-
-        const ThermoType& patchFaceMixture
-        (
-            const label patchi,
-            const label facei
-        ) const;
-
-        const ThermoType& cellVolMixture
-        (
-            const scalar p,
-            const scalar T,
-            const label celli
-        ) const;
-
-        const ThermoType& patchFaceVolMixture
-        (
-            const scalar p,
-            const scalar T,
-            const label patchi,
-            const label facei
-        ) const;
-
         //- Read dictionary
         void read(const dictionary&);
 
         //- Return thermo based on index
-        inline const ThermoType& getLocalThermo(const label speciei) const
+        inline const ThermoType& specieThermo(const label speciei) const
         {
-            return speciesData_[speciei];
+            return specieThermos_[speciei];
         }
 };
 

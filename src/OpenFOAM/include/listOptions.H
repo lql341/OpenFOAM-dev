@@ -1,17 +1,7 @@
 argList::addBoolOption
 (
     "listSwitches",
-    "List switches declared in libraries but not set in etc/controlDict"
-);
-argList::addBoolOption
-(
-    "listRegisteredSwitches",
-    "List switches registered for run-time modification"
-);
-argList::addBoolOption
-(
-    "listUnsetSwitches",
-    "List switches declared in libraries but not set in etc/controlDict"
+    "List all available debug, info and optimisation switches"
 );
 
 #ifdef fvPatchField_H
@@ -43,10 +33,10 @@ argList::addBoolOption
 );
 #endif
 
-#if defined(turbulentTransportModel_H) || defined(turbulentFluidThermoModel_H)
+#if defined(kinematicMomentumTransportModel_H) || defined(fluidThermoMomentumTransportModel_H)
 argList::addBoolOption
 (
-    "listTurbulenceModels",
-    "List turbulenceModels"
+    "listMomentumTransportModels",
+    "List momentumTransportModels"
 );
 #endif

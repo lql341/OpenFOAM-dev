@@ -83,7 +83,7 @@ primitives/Vector2D/vector2D/vector2D.C
 
 primitives/complex/complex.C
 primitives/globalIndexAndTransform/globalIndexAndTransform.C
-primitives/globalIndexAndTransform/vectorTensorTransform/vectorTensorTransform.C
+primitives/transform/transformer/transformer.C
 primitives/quaternion/quaternion.C
 primitives/septernion/septernion.C
 primitives/triad/triad.C
@@ -234,14 +234,13 @@ $(functionEntries)/ifeqEntry/ifeqEntry.C
 $(functionEntries)/ifEntry/ifEntry.C
 
 IOdictionary = db/IOobjects/IOdictionary
-$(IOdictionary)/baseIOdictionary.C
-$(IOdictionary)/baseIOdictionaryIO.C
 $(IOdictionary)/IOdictionary.C
+$(IOdictionary)/IOdictionaryIO.C
 $(IOdictionary)/localIOdictionary.C
-$(IOdictionary)/unwatchedIOdictionary.C
 
 db/IOobjects/IOMap/IOMapName.C
 db/IOobjects/decomposedBlockData/decomposedBlockData.C
+db/IOobjects/GlobalIOList/GlobalIOLists.C
 db/IOobjects/GlobalIOField/GlobalIOFields.C
 
 
@@ -268,6 +267,7 @@ $(dll)/codedBase/codedBase.C
 
 db/functionObjects/functionObject/functionObject.C
 db/functionObjects/functionObjectList/functionObjectList.C
+db/functionObjects/functionObjectList/wordAndDictionary.C
 db/functionObjects/writeFile/writeFile.C
 db/functionObjects/logFiles/logFiles.C
 db/functionObjects/writeObjectsBase/writeObjectsBase.C
@@ -469,11 +469,10 @@ $(basicPolyPatches)/coupled/coupledPolyPatch.C
 $(basicPolyPatches)/generic/genericPolyPatch.C
 
 constraintPolyPatches = $(polyPatches)/constraint
+$(constraintPolyPatches)/cyclic/cyclicTransform.C
 $(constraintPolyPatches)/cyclic/cyclicPolyPatch.C
 $(constraintPolyPatches)/cyclicSlip/cyclicSlipPolyPatch.C
-$(constraintPolyPatches)/oldCyclic/oldCyclicPolyPatch.C
 $(constraintPolyPatches)/empty/emptyPolyPatch.C
-$(constraintPolyPatches)/nonuniformTransformCyclic/nonuniformTransformCyclicPolyPatch.C
 $(constraintPolyPatches)/processorCyclic/processorCyclicPolyPatch.C
 $(constraintPolyPatches)/processor/processorPolyPatch.C
 $(constraintPolyPatches)/symmetryPlane/symmetryPlanePolyPatch.C
@@ -595,7 +594,6 @@ constraintPointPatches = $(pointPatches)/constraint
 $(constraintPointPatches)/cyclic/cyclicPointPatch.C
 $(constraintPointPatches)/cyclicSlip/cyclicSlipPointPatch.C
 $(constraintPointPatches)/empty/emptyPointPatch.C
-$(constraintPointPatches)/nonuniformTransformCyclic/nonuniformTransformCyclicPointPatch.C
 $(constraintPointPatches)/processor/processorPointPatch.C
 $(constraintPointPatches)/processorCyclic/processorCyclicPointPatch.C
 $(constraintPointPatches)/symmetryPlane/symmetryPlanePointPatch.C
@@ -617,6 +615,9 @@ meshTools = meshes/meshTools
 $(meshTools)/matchPoints.C
 
 fields/UniformDimensionedFields/uniformDimensionedFields.C
+
+fields/UniformGeometricFields/uniformGeometricFields.C
+
 fields/cloud/cloud.C
 
 Fields = fields/Fields
@@ -670,7 +671,6 @@ constraintPointPatchFields = $(pointPatchFields)/constraint
 $(constraintPointPatchFields)/cyclic/cyclicPointPatchFields.C
 $(constraintPointPatchFields)/cyclicSlip/cyclicSlipPointPatchFields.C
 $(constraintPointPatchFields)/empty/emptyPointPatchFields.C
-$(constraintPointPatchFields)/nonuniformTransformCyclic/nonuniformTransformCyclicPointPatchFields.C
 $(constraintPointPatchFields)/processor/processorPointPatchFields.C
 $(constraintPointPatchFields)/processorCyclic/processorCyclicPointPatchFields.C
 $(constraintPointPatchFields)/symmetryPlane/symmetryPlanePointPatchFields.C

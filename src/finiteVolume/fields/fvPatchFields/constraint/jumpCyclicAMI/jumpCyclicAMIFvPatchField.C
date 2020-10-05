@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2012-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -70,16 +70,6 @@ Foam::jumpCyclicAMIFvPatchField<Type>::jumpCyclicAMIFvPatchField
 template<class Type>
 Foam::jumpCyclicAMIFvPatchField<Type>::jumpCyclicAMIFvPatchField
 (
-    const jumpCyclicAMIFvPatchField<Type>& ptf
-)
-:
-    cyclicAMIFvPatchField<Type>(ptf)
-{}
-
-
-template<class Type>
-Foam::jumpCyclicAMIFvPatchField<Type>::jumpCyclicAMIFvPatchField
-(
     const jumpCyclicAMIFvPatchField<Type>& ptf,
     const DimensionedField<Type, volMesh>& iF
 )
@@ -96,7 +86,7 @@ Foam::jumpCyclicAMIFvPatchField<Type>::patchNeighbourField() const
 {
     const Field<Type>& iField = this->primitiveField();
     const labelUList& nbrFaceCells =
-        this->cyclicAMIPatch().cyclicAMIPatch().neighbPatch().faceCells();
+        this->cyclicAMIPatch().cyclicAMIPatch().nbrPatch().faceCells();
 
     Field<Type> pnf(iField, nbrFaceCells);
     tmp<Field<Type>> tpnf;
@@ -115,10 +105,7 @@ Foam::jumpCyclicAMIFvPatchField<Type>::patchNeighbourField() const
         tpnf = this->cyclicAMIPatch().interpolate(pnf);
     }
 
-    if (this->doTransform())
-    {
-        tpnf = transform(this->forwardT(), tpnf);
-    }
+    this->transform().transform(tpnf.ref(), tpnf());
 
     tmp<Field<Type>> tjf = jump();
     if (!this->cyclicAMIPatch().owner())
@@ -154,7 +141,7 @@ void Foam::jumpCyclicAMIFvPatchField<Type>::updateInterfaceMatrix
 ) const
 {
     const labelUList& nbrFaceCells =
-        this->cyclicAMIPatch().cyclicAMIPatch().neighbPatch().faceCells();
+        this->cyclicAMIPatch().cyclicAMIPatch().nbrPatch().faceCells();
 
     Field<Type> pnf(psiInternal, nbrFaceCells);
 

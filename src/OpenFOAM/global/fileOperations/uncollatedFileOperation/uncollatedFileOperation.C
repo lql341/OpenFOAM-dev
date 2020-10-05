@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -27,10 +27,11 @@ License
 #include "Time.H"
 #include "IFstream.H"
 #include "OFstream.H"
-#include "addToRunTimeSelectionTable.H"
 #include "decomposedBlockData.H"
 #include "dummyISstream.H"
 #include "unthreadedInitialise.H"
+#include "OSspecific.H"
+#include "addToRunTimeSelectionTable.H"
 
 /* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
 
@@ -610,11 +611,16 @@ bool Foam::fileOperations::uncollatedFileOperation::read
 (
     regIOobject& io,
     const bool masterOnly,
-    const IOstream::streamFormat format,
+    const IOstream::streamFormat defaultFormat,
     const word& typeName
 ) const
 {
     bool ok = true;
+
+    // Initialise format to the defaultFormat
+    // but reset to ASCII if defaultFormat and file format are ASCII
+    IOstream::streamFormat format = defaultFormat;
+
     if (Pstream::master() || !masterOnly)
     {
         if (debug)
@@ -624,8 +630,19 @@ bool Foam::fileOperations::uncollatedFileOperation::read
                 << " from file " << endl;
         }
 
-        // Read file
-        ok = io.readData(io.readStream(typeName));
+        // Open file and read header
+        Istream& is = io.readStream(typeName);
+
+        // Set format to ASCII if defaultFormat and file format are ASCII
+        if (defaultFormat == IOstream::ASCII)
+        {
+            format = is.format();
+        }
+
+        // Read the data from the file
+        ok = io.readData(is);
+
+        // Close the file
         io.close();
 
         if (debug)
@@ -642,6 +659,13 @@ bool Foam::fileOperations::uncollatedFileOperation::read
         // transferred as well as contents.
         Pstream::scatter(io.headerClassName());
         Pstream::scatter(io.note());
+
+        if (defaultFormat == IOstream::ASCII)
+        {
+            std::underlying_type_t<IOstream::streamFormat> formatValue(format);
+            Pstream::scatter(formatValue);
+            format = IOstream::streamFormat(formatValue);
+        }
 
         // Get my communication order
         const List<Pstream::commsStruct>& comms =
@@ -690,24 +714,29 @@ bool Foam::fileOperations::uncollatedFileOperation::read
 Foam::autoPtr<Foam::ISstream>
 Foam::fileOperations::uncollatedFileOperation::NewIFstream
 (
-    const fileName& filePath
+    const fileName& filePath,
+    IOstream::streamFormat format,
+    IOstream::versionNumber version
 ) const
 {
-    return autoPtr<ISstream>(new IFstream(filePath));
+    return autoPtr<ISstream>(new IFstream(filePath, format, version));
 }
 
 
 Foam::autoPtr<Foam::Ostream>
 Foam::fileOperations::uncollatedFileOperation::NewOFstream
 (
-    const fileName& pathName,
-    IOstream::streamFormat fmt,
-    IOstream::versionNumber ver,
-    IOstream::compressionType cmp,
+    const fileName& filePath,
+    IOstream::streamFormat format,
+    IOstream::versionNumber version,
+    IOstream::compressionType compression,
     const bool write
 ) const
 {
-    return autoPtr<Ostream>(new OFstream(pathName, fmt, ver, cmp));
+    return autoPtr<Ostream>
+    (
+        new OFstream(filePath, format, version, compression)
+    );
 }
 
 

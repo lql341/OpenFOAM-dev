@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -86,7 +86,7 @@ class totalTemperatureFvPatchScalarField
         //- Heat capacity ratio
         scalar gamma_;
 
-        //- Total pressure
+        //- Reference temperature
         scalarField T0_;
 
 
@@ -123,20 +123,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         totalTemperatureFvPatchScalarField
         (
             const totalTemperatureFvPatchScalarField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchScalarField> clone() const
-        {
-            return tmp<fvPatchScalarField>
-            (
-                new totalTemperatureFvPatchScalarField(*this)
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         totalTemperatureFvPatchScalarField
@@ -162,13 +153,13 @@ public:
 
         // Access
 
-            //- Return the total pressure
+            //- Return the reference temperature
             const scalarField& T0() const
             {
                 return T0_;
             }
 
-            //- Return reference to the total pressure to allow adjustment
+            //- Return reference to the temperature to allow adjustment
             scalarField& T0()
             {
                 return T0_;

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,19 +24,15 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "masterUncollatedFileOperation.H"
-#include "addToRunTimeSelectionTable.H"
-#include "Pstream.H"
 #include "Time.H"
-#include "instant.H"
-#include "IFstream.H"
 #include "masterOFstream.H"
 #include "decomposedBlockData.H"
 #include "registerSwitch.H"
 #include "dummyISstream.H"
 #include "SubList.H"
-#include "unthreadedInitialise.H"
 #include "PackedBoolList.H"
 #include "gzstream.h"
+#include "addToRunTimeSelectionTable.H"
 
 /* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
 
@@ -2110,11 +2106,15 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
 (
     regIOobject& io,
     const bool masterOnly,
-    const IOstream::streamFormat format,
+    const IOstream::streamFormat defaultFormat,
     const word& typeName
 ) const
 {
     bool ok = true;
+
+    // Initialise format to the defaultFormat
+    // but reset to ASCII if defaultFormat and file format are ASCII
+    IOstream::streamFormat format = defaultFormat;
 
     if (io.global())
     {
@@ -2138,16 +2138,34 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
             bool oldParRun = UPstream::parRun();
             UPstream::parRun() = false;
 
-            ok = io.readData(io.readStream(typeName));
+            // Open file and read header
+            Istream& is = io.readStream(typeName);
+
+            // Set format to ASCII if defaultFormat and file format are ASCII
+            if (defaultFormat == IOstream::ASCII)
+            {
+                format = is.format();
+            }
+
+            // Read the data from the file
+            ok = io.readData(is);
+
+            // Close the file
             io.close();
 
             UPstream::parRun() = oldParRun;
         }
 
-        Pstream::scatter(ok);   //, Pstream::msgType(), comm_);
-        Pstream::scatter(io.headerClassName()); //, Pstream::msgType(), comm_);
-        Pstream::scatter(io.note());    //, Pstream::msgType(), comm_);
+        Pstream::scatter(ok);
+        Pstream::scatter(io.headerClassName());
+        Pstream::scatter(io.note());
 
+        if (defaultFormat == IOstream::ASCII)
+        {
+            std::underlying_type_t<IOstream::streamFormat> formatValue(format);
+            Pstream::scatter(formatValue);
+            format = IOstream::streamFormat(formatValue);
+        }
 
         // scatter operation for regIOobjects
 
@@ -2169,7 +2187,7 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
                 myComm.above(),
                 0,
                 Pstream::msgType(),
-                Pstream::worldComm, // comm_,
+                Pstream::worldComm,
                 format
             );
             ok = io.readData(fromAbove);
@@ -2184,7 +2202,7 @@ bool Foam::fileOperations::masterUncollatedFileOperation::read
                 myComm.below()[belowI],
                 0,
                 Pstream::msgType(),
-                Pstream::worldComm, // comm_,
+                Pstream::worldComm,
                 format
             );
             bool okWrite = io.writeData(toBelow);
@@ -2216,12 +2234,12 @@ bool Foam::fileOperations::masterUncollatedFileOperation::writeObject
     const bool write
 ) const
 {
-    fileName pathName(io.objectPath());
+    fileName filePath(io.objectPath());
 
     if (debug)
     {
         Pout<< "masterUncollatedFileOperation::writeObject :"
-            << " io:" << pathName << " write:" << write << endl;
+            << " io:" << filePath << " write:" << write << endl;
     }
 
     // Make sure to pick up any new times
@@ -2231,7 +2249,7 @@ bool Foam::fileOperations::masterUncollatedFileOperation::writeObject
     (
         NewOFstream
         (
-            pathName,
+            filePath,
             fmt,
             ver,
             cmp,
@@ -2376,7 +2394,9 @@ void Foam::fileOperations::masterUncollatedFileOperation::setTime
 Foam::autoPtr<Foam::ISstream>
 Foam::fileOperations::masterUncollatedFileOperation::NewIFstream
 (
-    const fileName& filePath
+    const fileName& filePath,
+    IOstream::streamFormat format,
+    IOstream::versionNumber version
 ) const
 {
     if (Pstream::parRun())
@@ -2443,7 +2463,7 @@ Foam::fileOperations::masterUncollatedFileOperation::NewIFstream
             // Read myself
             return autoPtr<ISstream>
             (
-                new IFstream(filePaths[Pstream::masterNo()])
+                new IFstream(filePaths[Pstream::masterNo()], format, version)
             );
         }
         else
@@ -2477,7 +2497,7 @@ Foam::fileOperations::masterUncollatedFileOperation::NewIFstream
     else
     {
         // Read myself
-        return autoPtr<ISstream>(new IFstream(filePath));
+        return autoPtr<ISstream>(new IFstream(filePath, format, version));
     }
 }
 
@@ -2485,10 +2505,10 @@ Foam::fileOperations::masterUncollatedFileOperation::NewIFstream
 Foam::autoPtr<Foam::Ostream>
 Foam::fileOperations::masterUncollatedFileOperation::NewOFstream
 (
-    const fileName& pathName,
-    IOstream::streamFormat fmt,
-    IOstream::versionNumber ver,
-    IOstream::compressionType cmp,
+    const fileName& filePath,
+    IOstream::streamFormat format,
+    IOstream::versionNumber version,
+    IOstream::compressionType compression,
     const bool write
 ) const
 {
@@ -2496,10 +2516,10 @@ Foam::fileOperations::masterUncollatedFileOperation::NewOFstream
     (
         new masterOFstream
         (
-            pathName,
-            fmt,
-            ver,
-            cmp,
+            filePath,
+            format,
+            version,
+            compression,
             false,      // append
             write
         )

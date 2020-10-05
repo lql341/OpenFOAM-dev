@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2016-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -54,18 +54,30 @@ Foam::wordList Foam::functionObjects::writeObjectsBase::objectNames()
     DynamicList<word> allNames(writeObr_.toc().size());
     forAll(writeObjectNames_, i)
     {
-        wordList names(writeObr_.names<regIOobject>(writeObjectNames_[i]));
-
-        if (names.size())
+        if (regExp_)
         {
-            allNames.append(names);
+            wordList names(writeObr_.names<regIOobject>(writeObjectNames_[i]));
+
+            if (names.size())
+            {
+                allNames.append(names);
+            }
+            else
+            {
+                WarningInFunction
+                    << "Object " << writeObjectNames_[i] << " not found in "
+                    << "database. Available objects:"
+                    << nl << writeObr_.sortedToc() << endl;
+            }
         }
         else
         {
-            WarningInFunction
-                << "Object " << writeObjectNames_[i] << " not found in "
-                << "database. Available objects:" << nl << writeObr_.sortedToc()
-                << endl;
+            const word name(writeObjectNames_[i]);
+
+            if (writeObr_.foundObject<regIOobject>(name))
+            {
+                allNames.append(name);
+            }
         }
     }
 
@@ -114,7 +126,21 @@ Foam::functionObjects::writeObjectsBase::writeObjectNames() const
 
 bool Foam::functionObjects::writeObjectsBase::read(const dictionary& dict)
 {
-    dict.lookup("objects") >> writeObjectNames_;
+    regExp_ = dict.lookupOrDefault<Switch>("regExp", true);
+
+    if (regExp_)
+    {
+        dict.lookup("objects") >> writeObjectNames_;
+    }
+    else
+    {
+        const wordList objectNames(dict.lookup("objects"));
+        writeObjectNames_.setSize(objectNames.size());
+        forAll(objectNames, i)
+        {
+            writeObjectNames_[i] = objectNames[i];
+        }
+    }
 
     return true;
 }

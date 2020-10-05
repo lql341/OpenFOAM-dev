@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "yPlus.H"
-#include "turbulenceModel.H"
+#include "momentumTransportModel.H"
 #include "nutWallFunctionFvPatchScalarField.H"
 #include "wallFvPatch.H"
 #include "addToRunTimeSelectionTable.H"
@@ -64,7 +64,7 @@ void Foam::functionObjects::yPlus::writeFileHeader(const label i)
 
 Foam::tmp<Foam::volScalarField> Foam::functionObjects::yPlus::calcYPlus
 (
-    const turbulenceModel& turbModel
+    const momentumTransportModel& turbModel
 )
 {
     tmp<volScalarField> tyPlus
@@ -79,18 +79,19 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::yPlus::calcYPlus
 
     volScalarField::Boundary& yPlusBf = tyPlus.ref().boundaryFieldRef();
 
-    volScalarField::Boundary d = nearWallDist(mesh_).y();
+    const nearWallDist nwd(mesh_);
+    const volScalarField::Boundary& d = nwd.y();
 
-    const volScalarField::Boundary nutBf =
-        turbModel.nut()().boundaryField();
+    const tmp<volScalarField> tnut = turbModel.nut();
+    const volScalarField::Boundary& nutBf = tnut().boundaryField();
 
-    const volScalarField::Boundary nuEffBf =
-        turbModel.nuEff()().boundaryField();
+    const tmp<volScalarField> tnuEff = turbModel.nuEff();
+    const volScalarField::Boundary& nuEffBf = tnuEff().boundaryField();
 
-    const volScalarField::Boundary nuBf =
-        turbModel.nu()().boundaryField();
+    const tmp<volScalarField> tnu = turbModel.nu();
+    const volScalarField::Boundary& nuBf = tnu().boundaryField();
 
-    const fvPatchList& patches = mesh_.boundary();
+        const fvPatchList& patches = mesh_.boundary();
 
     forAll(patches, patchi)
     {
@@ -161,15 +162,20 @@ bool Foam::functionObjects::yPlus::read(const dictionary& dict)
 
 bool Foam::functionObjects::yPlus::execute()
 {
-    if (mesh_.foundObject<turbulenceModel>
+    if (mesh_.foundObject<momentumTransportModel>
     (
-        IOobject::groupName(turbulenceModel::propertiesName, phaseName_))
+        IOobject::groupName(momentumTransportModel::typeName, phaseName_))
     )
     {
-        const turbulenceModel& model = mesh_.lookupObject<turbulenceModel>
-        (
-            IOobject::groupName(turbulenceModel::propertiesName, phaseName_)
-        );
+        const momentumTransportModel& model =
+            mesh_.lookupObject<momentumTransportModel>
+            (
+                IOobject::groupName
+                (
+                    momentumTransportModel::typeName,
+                    phaseName_
+                )
+            );
 
         word name(IOobject::groupName(type(), phaseName_));
 

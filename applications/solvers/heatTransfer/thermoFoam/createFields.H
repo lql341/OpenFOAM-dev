@@ -1,7 +1,7 @@
 Info<< "Reading thermophysical properties\n" << endl;
 
-autoPtr<rhoThermo> pThermo(rhoThermo::New(mesh));
-rhoThermo& thermo = pThermo();
+autoPtr<fluidThermo> pThermo(fluidThermo::New(mesh));
+fluidThermo& thermo = pThermo();
 thermo.validate(args.executable(), "h", "e");
 
 volScalarField rho
@@ -35,7 +35,23 @@ volVectorField U
 
 #include "compressibleCreatePhi.H"
 
-#include "setAlphaEff.H"
+Info<< "Creating turbulence model\n" << endl;
+autoPtr<compressible::momentumTransportModel> turbulence
+(
+    compressible::momentumTransportModel::New
+    (
+        rho,
+        U,
+        phi,
+        thermo
+    )
+);
+
+Info<< "Creating thermophysical transport model\n" << endl;
+autoPtr<fluidThermophysicalTransportModel> thermophysicalTransport
+(
+    fluidThermophysicalTransportModel::New(turbulence(), thermo)
+);
 
 Info<< "Creating field dpdt\n" << endl;
 volScalarField dpdt

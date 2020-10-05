@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2016-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -75,6 +75,7 @@ SourceFiles
 #include "writeLocalObjects.H"
 #include "HashSet.H"
 #include "volFieldsFwd.H"
+#include "surfaceFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -84,7 +85,7 @@ namespace functionObjects
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class wallHeatFlux Declaration
+                        Class wallHeatFlux Declaration
 \*---------------------------------------------------------------------------*/
 
 class wallHeatFlux
@@ -108,11 +109,7 @@ protected:
         virtual void writeFileHeader(const label i);
 
         //- Calculate the heat-flux
-        tmp<volScalarField> calcWallHeatFlux
-        (
-            const volScalarField& alpha,
-            const volScalarField& he
-        );
+        tmp<volScalarField> calcWallHeatFlux(const surfaceScalarField& q);
 
 
 public:

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -33,7 +33,8 @@ Description
 #include "engineTime.H"
 #include "engineMesh.H"
 #include "psiThermo.H"
-#include "turbulentFluidThermoModel.H"
+#include "fluidThermoMomentumTransportModel.H"
+#include "fluidThermophysicalTransportModel.H"
 #include "OFstream.H"
 #include "fvOptions.H"
 #include "pimpleControl.H"
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
     #include "createFieldRefs.H"
     #include "createRhoUf.H"
     #include "initContinuityErrs.H"
-    #include "readEngineTimeControls.H"
+    #include "createEngineTimeControls.H"
     #include "compressibleCourantNo.H"
     #include "setInitialDeltaT.H"
     #include "startSummary.H"
@@ -95,6 +96,7 @@ int main(int argc, char *argv[])
             if (pimple.turbCorr())
             {
                 turbulence->correct();
+                thermophysicalTransport->correct();
             }
         }
 

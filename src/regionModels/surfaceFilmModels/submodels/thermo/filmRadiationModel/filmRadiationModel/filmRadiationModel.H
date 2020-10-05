@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,7 @@ namespace surfaceFilmModels
 {
 
 /*---------------------------------------------------------------------------*\
-                    Class filmRadiationModel Declaration
+                     Class filmRadiationModel Declaration
 \*---------------------------------------------------------------------------*/
 
 class filmRadiationModel
@@ -115,7 +115,7 @@ public:
             virtual void correct() = 0;
 
             //- Return the radiation sensible enthalpy source
-            virtual tmp<volScalarField> Shs() = 0;
+            virtual tmp<volScalarField::Internal> Shs() = 0;
 
 
     // Member Operators

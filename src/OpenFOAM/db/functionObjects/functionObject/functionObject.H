@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -147,10 +147,10 @@ class functionObject
 
 public:
 
+    ClassName("functionObject");
+
     //- Runtime type information
     virtual const word& type() const = 0;
-
-    static int debug;
 
     //- Global post-processing mode switch
     static bool postProcess;
@@ -227,7 +227,6 @@ public:
         virtual bool write() = 0;
 
         //- Called when Time::run() determines that the time-loop exits.
-        //  By default it simply calls execute().
         virtual bool end();
 
         //- Called by Time::setDeltaT(). Allows the functionObject to override

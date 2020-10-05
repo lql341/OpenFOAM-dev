@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -36,16 +36,16 @@ namespace combustionModels
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-FSD<ReactionThermo, ThermoType>::FSD
+template<class ThermoType>
+FSD<ThermoType>::FSD
 (
     const word& modelType,
-    const ReactionThermo& thermo,
-    const compressibleTurbulenceModel& turb,
+    const fluidReactionThermo& thermo,
+    const compressibleMomentumTransportModel& turb,
     const word& combustionProperties
 )
 :
-    singleStepCombustion<ReactionThermo, ThermoType>
+    singleStepCombustion<ThermoType>
     (
         modelType,
         thermo,
@@ -87,15 +87,15 @@ FSD<ReactionThermo, ThermoType>::FSD
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-FSD<ReactionThermo, ThermoType>::~FSD()
+template<class ThermoType>
+FSD<ThermoType>::~FSD()
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-void FSD<ReactionThermo, ThermoType>::calculateSourceNorm()
+template<class ThermoType>
+void FSD<ThermoType>::calculateSourceNorm()
 {
     this->fresCorrect();
 
@@ -174,7 +174,7 @@ void FSD<ReactionThermo, ThermoType>::calculateSourceNorm()
     const compressible::LESModel& lesModel =
         YO2.db().lookupObject<compressible::LESModel>
         (
-            turbulenceModel::propertiesName
+            momentumTransportModel::typeName
         );
 
     const volScalarField& delta = lesModel.delta();
@@ -309,8 +309,8 @@ void FSD<ReactionThermo, ThermoType>::calculateSourceNorm()
 }
 
 
-template<class ReactionThermo, class ThermoType>
-void FSD<ReactionThermo, ThermoType>::correct()
+template<class ThermoType>
+void FSD<ThermoType>::correct()
 {
     this->wFuel_ ==
         dimensionedScalar(dimMass/pow3(dimLength)/dimTime, 0);
@@ -319,10 +319,10 @@ void FSD<ReactionThermo, ThermoType>::correct()
 }
 
 
-template<class ReactionThermo, class ThermoType>
-bool FSD<ReactionThermo, ThermoType>::read()
+template<class ThermoType>
+bool FSD<ThermoType>::read()
 {
-    if (singleStepCombustion<ReactionThermo, ThermoType>::read())
+    if (singleStepCombustion<ThermoType>::read())
     {
         this->coeffs().lookup("Cv") >> Cv_ ;
         this->coeffs().lookup("ftVarMin") >> ftVarMin_;

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -43,7 +43,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class singleComponentMixture Declaration
+                   Class singleComponentMixture Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class ThermoType>
@@ -51,17 +51,28 @@ class singleComponentMixture
 :
     public basicSpecieMixture
 {
-    // Private Data
-
-        //- Thermo model
-        ThermoType thermo_;
-
 
 public:
 
     //- The type of thermodynamics this mixture is instantiated for
     typedef ThermoType thermoType;
 
+    //- Mixing type for thermodynamic properties
+    typedef ThermoType thermoMixtureType;
+
+    //- Mixing type for transport properties
+    typedef ThermoType transportMixtureType;
+
+
+private:
+
+    // Private Data
+
+        //- Thermo model
+        ThermoType mixture_;
+
+
+public:
 
     // Constructors
 
@@ -83,50 +94,58 @@ public:
             return "pureMixture<" + ThermoType::typeName() + '>';
         }
 
-        //- Get the mixture for the given cell
-        const ThermoType& cellMixture(const label celli) const
+        const thermoMixtureType& cellThermoMixture(const label) const
         {
-            return thermo_;
+            return mixture_;
         }
 
-        //- Get the mixture for the given patch face
-        const ThermoType& patchFaceMixture
+        const thermoMixtureType& patchFaceThermoMixture
         (
-            const label patchi,
-            const label facei
+            const label,
+            const label
         ) const
         {
-            return thermo_;
+            return mixture_;
         }
 
-        //- Get the volumetric mixture for the given cell
-        const ThermoType& cellVolMixture
-        (
-            const scalar p,
-            const scalar T,
-            const label celli
-        )
+        const transportMixtureType& cellTransportMixture(const label) const
         {
-            return thermo_;
+            return mixture_;
         }
 
-        //- Get the volumetric mixture for the given patch face
-        const ThermoType& patchFaceVolMixture
+        const transportMixtureType& patchFaceTransportMixture
         (
-            const scalar p,
-            const scalar T,
-            const label patchi,
-            const label facei
+            const label,
+            const label
         ) const
         {
-            return thermo_;
+            return mixture_;
+        }
+
+        const transportMixtureType& cellTransportMixture
+        (
+            const label,
+            const thermoMixtureType&
+        ) const
+        {
+            return mixture_;
+        }
+
+        const transportMixtureType& patchFaceTransportMixture
+        (
+            const label,
+            const label,
+            const thermoMixtureType&
+        ) const
+        {
+            return mixture_;
         }
 
         //- Read dictionary
         void read(const dictionary&);
 
         //- Return thermo based on index
-        inline const ThermoType& getLocalThermo(const label speciei) const
+        inline const ThermoType& specieThermo(const label speciei) const
         {
             #ifdef FULLDEBUG
             if (speciei != 0)
@@ -136,7 +155,7 @@ public:
                     << "mixture" << exit(FatalError);
             }
             #endif
-            return thermo_;
+            return mixture_;
         }
 };
 

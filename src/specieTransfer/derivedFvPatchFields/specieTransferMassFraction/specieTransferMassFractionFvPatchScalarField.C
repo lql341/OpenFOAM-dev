@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2019-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -27,9 +27,8 @@ License
 #include "specieTransferVelocityFvPatchVectorField.H"
 #include "volFields.H"
 #include "surfaceFields.H"
-#include "turbulentFluidThermoModel.H"
-#include "psiReactionThermo.H"
-#include "rhoReactionThermo.H"
+#include "thermophysicalTransportModel.H"
+#include "fluidReactionThermo.H"
 
 // * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * * //
 
@@ -66,22 +65,7 @@ Foam::specieTransferMassFractionFvPatchScalarField::composition
 {
     const word& name = basicThermo::dictName;
 
-    if (db.foundObject<psiReactionThermo>(name))
-    {
-        return db.lookupObject<psiReactionThermo>(name).composition();
-    }
-    else if (db.foundObject<rhoReactionThermo>(name))
-    {
-        return db.lookupObject<rhoReactionThermo>(name).composition();
-    }
-    else
-    {
-        FatalErrorInFunction
-            << "Could not find a multi-component thermodynamic model."
-            << exit(FatalError);
-
-        return NullObjectRef<basicSpecieMixture>();
-    }
+    return db.lookupObject<fluidReactionThermo>(name).composition();
 }
 
 
@@ -150,22 +134,6 @@ specieTransferMassFractionFvPatchScalarField
     phiName_(ptf.phiName_),
     UName_(ptf.UName_),
     phiYp_(p.size(), 0),
-    timeIndex_(-1),
-    c_(ptf.c_),
-    property_(ptf.property_)
-{}
-
-
-Foam::specieTransferMassFractionFvPatchScalarField::
-specieTransferMassFractionFvPatchScalarField
-(
-    const specieTransferMassFractionFvPatchScalarField& ptf
-)
-:
-    mixedFvPatchScalarField(ptf),
-    phiName_(ptf.phiName_),
-    UName_(ptf.UName_),
-    phiYp_(ptf.size(), 0),
     timeIndex_(-1),
     c_(ptf.c_),
     property_(ptf.property_)
@@ -253,9 +221,9 @@ void Foam::specieTransferMassFractionFvPatchScalarField::updateCoeffs()
     const scalarField AAlphaEffp
     (
         patch().magSf()
-       *db().lookupObject<compressible::turbulenceModel>
+       *db().lookupObject<thermophysicalTransportModel>
         (
-            turbulenceModel::propertiesName
+            thermophysicalTransportModel::typeName
         )
        .alphaEff(patch().index())
     );

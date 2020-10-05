@@ -3,7 +3,12 @@
 
     fvScalarMatrix EEqn
     (
-        fvm::ddt(rho, he) + fvm::div(phi, he)
+        fvm::ddt(rho, he)
+      + (
+            mvConvection.valid()
+          ? mvConvection->fvmDiv(phi, he)
+          : fvm::div(phi, he)
+        )
       + fvc::ddt(rho, K) + fvc::div(phi, K)
       + (
             he.name() == "e"
@@ -15,7 +20,7 @@
             )
           : -dpdt
         )
-      - fvm::laplacian(turbulence.alphaEff(), he)
+      + thermophysicalTransport.divq(he)
      ==
         rho*(U&g)
       + rad.Sh(thermo, he)

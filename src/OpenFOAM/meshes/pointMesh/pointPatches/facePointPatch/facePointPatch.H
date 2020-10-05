@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,7 +49,7 @@ class processorPointPatch;
 class cyclicPointPatch;
 
 /*---------------------------------------------------------------------------*\
-                  Class facePointPatch Declaration
+                       Class facePointPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 class facePointPatch
@@ -67,7 +67,7 @@ protected:
     // Protected Member Functions
 
         //- Initialise the calculation of the patch geometry
-        virtual void initGeometry(PstreamBuffers&);
+        virtual void initCalcGeometry(PstreamBuffers&);
 
         //- Calculate the patch geometry
         virtual void calcGeometry(PstreamBuffers&);

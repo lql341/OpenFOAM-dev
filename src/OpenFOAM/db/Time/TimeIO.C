@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,6 +29,7 @@ License
 #include "dimensionedConstants.H"
 #include "IOdictionary.H"
 #include "fileOperation.H"
+#include "OSspecific.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -45,95 +46,63 @@ void Foam::Time::readDict()
     // Check for local switches and settings
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    // Debug switches
-    if (controlDict_.found("DebugSwitches"))
+    // Debug, info and optimisation switches
+    auto readSwitches = [&](const word& name, simpleObjectRegistry& objects)
     {
-        InfoHeader
-            << "Overriding DebugSwitches according to " << controlDict_.name()
-            << endl;
-
-        simpleObjectRegistry& objects = debug::debugObjects();
-        const dictionary& localSettings = controlDict_.subDict("DebugSwitches");
-        forAllConstIter(dictionary, localSettings, iter)
+        if (controlDict_.found(name + "Switches"))
         {
-            const word& name = iter().keyword();
+            InfoHeader
+                << "Overriding " << name << "Switches according to "
+                << controlDict_.name()
+                << endl;
 
-            simpleObjectRegistryEntry* objPtr = objects.lookupPtr(name);
-
-            if (objPtr)
+            const dictionary& localSettings =
+                controlDict_.subDict(name + "Switches");
+            forAllConstIter(dictionary, localSettings, iter)
             {
-                InfoHeader << "    " << iter() << endl;
+                const word& name = iter().keyword();
 
-                const List<simpleRegIOobject*>& objects = *objPtr;
+                simpleObjectRegistryEntry* objPtr = objects.lookupPtr(name);
 
-                if (iter().isDict())
+                if (objPtr)
                 {
-                    forAll(objects, i)
+                    InfoHeader << "    " << iter() << endl;
+
+                    const List<simpleRegIOobject*>& objects = *objPtr;
+
+                    if (iter().isDict())
                     {
-                        OStringStream os(IOstream::ASCII);
-                        os  << iter().dict();
-                        IStringStream is(os.str());
-                        objects[i]->readData(is);
+                        forAll(objects, i)
+                        {
+                            OStringStream os(IOstream::ASCII);
+                            os  << iter().dict();
+                            IStringStream is(os.str());
+                            objects[i]->readData(is);
+                        }
                     }
-                }
-                else
-                {
-                    forAll(objects, i)
+                    else
                     {
-                        objects[i]->readData(iter().stream());
+                        forAll(objects, i)
+                        {
+                            objects[i]->readData(iter().stream());
+                        }
                     }
                 }
             }
         }
-    }
+    };
+    readSwitches("Debug", debug::debugObjects());
+    readSwitches("Info", debug::infoObjects());
+    readSwitches("Optimisation", debug::optimisationObjects());
 
-    // Optimisation Switches
+
+    // Handle fileHandler override explicitly since interacts with local
+    // dictionary monitoring
     if (controlDict_.found("OptimisationSwitches"))
     {
-        InfoHeader
-            << "Overriding OptimisationSwitches according to "
-            << controlDict_.name() << endl;
+        const dictionary& localSettings =
+            controlDict_.subDict("OptimisationSwitches");
 
-        simpleObjectRegistry& objects = debug::optimisationObjects();
-        const dictionary& localSettings = controlDict_.subDict
-        (
-            "OptimisationSwitches"
-        );
-        forAllConstIter(dictionary, localSettings, iter)
-        {
-            const word& name = iter().keyword();
-
-            simpleObjectRegistryEntry* objPtr = objects.lookupPtr(name);
-
-            if (objPtr)
-            {
-                InfoHeader << "    " << iter() << endl;
-
-                const List<simpleRegIOobject*>& objects = *objPtr;
-
-                if (iter().isDict())
-                {
-                    forAll(objects, i)
-                    {
-                        OStringStream os(IOstream::ASCII);
-                        os  << iter().dict();
-                        IStringStream is(os.str());
-                        objects[i]->readData(is);
-                    }
-                }
-                else
-                {
-                    forAll(objects, i)
-                    {
-                        objects[i]->readData(iter().stream());
-                    }
-                }
-            }
-        }
-
-
-        // Handle fileHandler override explicitly since interacts with
-        // local dictionary monitoring.
         word fileHandlerName;
         if
         (
@@ -376,7 +345,7 @@ void Foam::Time::readDict()
     {
         IOstream::defaultPrecision
         (
-            controlDict_.lookup<uint>("writePrecision")
+            controlDict_.lookup<unsigned int>("writePrecision")
         );
 
         Sout.precision(IOstream::defaultPrecision());
@@ -416,18 +385,6 @@ void Foam::Time::readDict()
 
     controlDict_.readIfPresent("graphFormat", graphFormat_);
     controlDict_.readIfPresent("runTimeModifiable", runTimeModifiable_);
-
-
-
-
-    if (!runTimeModifiable_ && controlDict_.watchIndices().size())
-    {
-        forAllReverse(controlDict_.watchIndices(), i)
-        {
-            fileHandler().removeWatch(controlDict_.watchIndices()[i]);
-        }
-        controlDict_.watchIndices().clear();
-    }
 }
 
 
@@ -436,16 +393,6 @@ bool Foam::Time::read()
     if (controlDict_.regIOobject::read())
     {
         readDict();
-
-        if (runTimeModifiable_)
-        {
-            // For IOdictionary the call to regIOobject::read() would have
-            // already updated all the watchIndices via the addWatch but
-            // controlDict_ is an unwatchedIOdictionary so will only have
-            // stored the dependencies as files.
-            fileHandler().addWatches(controlDict_, controlDict_.files());
-        }
-        controlDict_.files().clear();
 
         return true;
     }
@@ -480,17 +427,6 @@ void Foam::Time::readModifiedObjects()
         {
             readDict();
             functionObjects_.read();
-
-            if (runTimeModifiable_)
-            {
-                // For IOdictionary the call to regIOobject::read() would have
-                // already updated all the watchIndices via the addWatch but
-                // controlDict_ is an unwatchedIOdictionary so will only have
-                // stored the dependencies as files.
-
-                fileHandler().addWatches(controlDict_, controlDict_.files());
-            }
-            controlDict_.files().clear();
         }
 
         bool registryModified = objectRegistry::modified();

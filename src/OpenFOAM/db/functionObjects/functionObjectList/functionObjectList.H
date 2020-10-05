@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -45,6 +45,7 @@ SourceFiles
 #include "SHA1Digest.H"
 #include "HashTable.H"
 #include "HashSet.H"
+#include "dictionary.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -221,7 +222,7 @@ public:
         );
 
         //- Read the specified functionObject configuration dictionary
-        //  parsing the optional arguments included in the string 'funcCall',
+        //  parsing the optional arguments included in the string 'funcArgs',
         //  inserting 'field' or 'fields' entries as required and merging the
         //  resulting functionObject dictionary into 'functionsDict'.
         //  Any fields required to execute the functionObject are added to
@@ -241,7 +242,7 @@ public:
         //          fields (p U);
         static bool readFunctionObject
         (
-            const string& funcCall,
+            const string& funcArgs,
             dictionary& functionsDict,
             const string& context,
             HashSet<word>& requiredFields,

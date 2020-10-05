@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -111,17 +111,8 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
-        cyclicAMIFvPatchField(const cyclicAMIFvPatchField<Type>&);
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchField<Type>> clone() const
-        {
-            return tmp<fvPatchField<Type>>
-            (
-                new cyclicAMIFvPatchField<Type>(*this)
-            );
-        }
+        //- Disallow copy without setting internal field reference
+        cyclicAMIFvPatchField(const cyclicAMIFvPatchField<Type>&) = delete;
 
         //- Copy constructor setting internal field reference
         cyclicAMIFvPatchField
@@ -164,7 +155,7 @@ public:
             virtual tmp<Field<Type>> patchNeighbourField() const;
 
             //- Return reference to neighbour patchField
-            const cyclicAMIFvPatchField<Type>& neighbourPatchField() const;
+            const cyclicAMIFvPatchField<Type>& nbrPatchField() const;
 
             //- Update result field based on interface functionality
             virtual void updateInterfaceMatrix
@@ -188,23 +179,10 @@ public:
 
         // Cyclic AMI coupled interface functions
 
-            //- Does the patch field perform the transformation
-            virtual bool doTransform() const
+            //- Return transformation between the coupled patches
+            virtual const transformer& transform() const
             {
-                return
-                    !(cyclicAMIPatch_.parallel() || pTraits<Type>::rank == 0);
-            }
-
-            //- Return face transformation tensor
-            virtual const tensorField& forwardT() const
-            {
-                return cyclicAMIPatch_.forwardT();
-            }
-
-            //- Return neighbour-cell transformation tensor
-            virtual const tensorField& reverseT() const
-            {
-                return cyclicAMIPatch_.reverseT();
+                return cyclicAMIPatch_.transform();
             }
 
             //- Return rank of component for transform

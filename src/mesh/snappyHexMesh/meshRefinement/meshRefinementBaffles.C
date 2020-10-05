@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,23 +24,16 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "meshRefinement.H"
-#include "fvMesh.H"
-#include "syncTools.H"
-#include "Time.H"
 #include "refinementSurfaces.H"
-#include "pointSet.H"
 #include "faceSet.H"
-#include "indirectPrimitivePatch.H"
 #include "polyTopoChange.H"
 #include "meshTools.H"
 #include "polyModifyFace.H"
 #include "polyModifyCell.H"
 #include "polyAddFace.H"
 #include "polyRemoveFace.H"
-#include "polyAddPoint.H"
 #include "localPointRegion.H"
 #include "duplicatePoints.H"
-#include "OFstream.H"
 #include "regionSplit.H"
 #include "removeCells.H"
 #include "unitConversion.H"
@@ -48,6 +41,7 @@ License
 #include "patchFaceOrientation.H"
 #include "PatchEdgeFaceWave.H"
 #include "patchEdgeFaceRegion.H"
+#include "OSspecific.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -55,7 +49,7 @@ Foam::label Foam::meshRefinement::createBaffle
 (
     const label facei,
     const label ownPatch,
-    const label neiPatch,
+    const label nbrPatch,
     polyTopoChange& meshMod
 ) const
 {
@@ -90,7 +84,7 @@ Foam::label Foam::meshRefinement::createBaffle
 
     if (mesh_.isInternalFace(facei))
     {
-        if (neiPatch == -1)
+        if (nbrPatch == -1)
         {
             FatalErrorInFunction
                 << "No neighbour patch for internal face " << facei
@@ -115,7 +109,7 @@ Foam::label Foam::meshRefinement::createBaffle
                 -1,                         // masterEdgeID
                 facei,                      // masterFaceID,
                 true,                       // face flip
-                neiPatch,                   // patch for face
+                nbrPatch,                   // patch for face
                 zoneID,                     // zone for face
                 reverseFlip                 // face flip in zone
             )
@@ -131,7 +125,7 @@ void Foam::meshRefinement::getBafflePatches
     const labelList& neiLevel,
     const pointField& neiCc,
     labelList& ownPatch,
-    labelList& neiPatch
+    labelList& nbrPatch
 ) const
 {
     autoPtr<OFstream> str;
@@ -161,8 +155,8 @@ void Foam::meshRefinement::getBafflePatches
 
     ownPatch.setSize(mesh_.nFaces());
     ownPatch = -1;
-    neiPatch.setSize(mesh_.nFaces());
-    neiPatch = -1;
+    nbrPatch.setSize(mesh_.nFaces());
+    nbrPatch = -1;
 
 
     // Collect candidate faces
@@ -251,12 +245,12 @@ void Foam::meshRefinement::getBafflePatches
             [
                 surfaces_.globalRegion(surface1[i], region1[i])
             ];
-            neiPatch[facei] = globalToMasterPatch
+            nbrPatch[facei] = globalToMasterPatch
             [
                 surfaces_.globalRegion(surface2[i], region2[i])
             ];
 
-            if (ownPatch[facei] == -1 || neiPatch[facei] == -1)
+            if (ownPatch[facei] == -1 || nbrPatch[facei] == -1)
             {
                 FatalErrorInFunction
                     << "problem." << abort(FatalError);
@@ -273,7 +267,7 @@ void Foam::meshRefinement::getBafflePatches
     //   not used when creating baffles from proc faces.
     // - tolerances issues occasionally crop up.
     syncTools::syncFaceList(mesh_, ownPatch, maxEqOp<label>());
-    syncTools::syncFaceList(mesh_, neiPatch, maxEqOp<label>());
+    syncTools::syncFaceList(mesh_, nbrPatch, maxEqOp<label>());
 }
 
 
@@ -345,19 +339,19 @@ Foam::Map<Foam::labelPair> Foam::meshRefinement::getZoneBafflePatches
 Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createBaffles
 (
     const labelList& ownPatch,
-    const labelList& neiPatch
+    const labelList& nbrPatch
 )
 {
     if
     (
         ownPatch.size() != mesh_.nFaces()
-     || neiPatch.size() != mesh_.nFaces()
+     || nbrPatch.size() != mesh_.nFaces()
     )
     {
         FatalErrorInFunction
             << "Illegal size :"
             << " ownPatch:" << ownPatch.size()
-            << " neiPatch:" << neiPatch.size()
+            << " nbrPatch:" << nbrPatch.size()
             << ". Should be number of faces:" << mesh_.nFaces()
             << abort(FatalError);
     }
@@ -366,7 +360,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createBaffles
     {
         labelList syncedOwnPatch(ownPatch);
         syncTools::syncFaceList(mesh_, syncedOwnPatch, maxEqOp<label>());
-        labelList syncedNeiPatch(neiPatch);
+        labelList syncedNeiPatch(nbrPatch);
         syncTools::syncFaceList(mesh_, syncedNeiPatch, maxEqOp<label>());
 
         forAll(syncedOwnPatch, facei)
@@ -374,7 +368,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createBaffles
             if
             (
                 (ownPatch[facei] == -1 && syncedOwnPatch[facei] != -1)
-             || (neiPatch[facei] == -1 && syncedNeiPatch[facei] != -1)
+             || (nbrPatch[facei] == -1 && syncedNeiPatch[facei] != -1)
             )
             {
                 FatalErrorInFunction
@@ -383,7 +377,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createBaffles
                     << " fc:" << mesh_.faceCentres()[facei] << endl
                     << "ownPatch:" << ownPatch[facei]
                     << " syncedOwnPatch:" << syncedOwnPatch[facei]
-                    << " neiPatch:" << neiPatch[facei]
+                    << " nbrPatch:" << nbrPatch[facei]
                     << " syncedNeiPatch:" << syncedNeiPatch[facei]
                     << abort(FatalError);
             }
@@ -405,7 +399,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createBaffles
             (
                 facei,
                 ownPatch[facei],   // owner side patch
-                neiPatch[facei],   // neighbour side patch
+                nbrPatch[facei],   // neighbour side patch
                 meshMod
             );
             nBaffles++;
@@ -547,15 +541,15 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::createZoneBaffles
         {
             // Convert into labelLists
             labelList ownPatch(mesh_.nFaces(), -1);
-            labelList neiPatch(mesh_.nFaces(), -1);
+            labelList nbrPatch(mesh_.nFaces(), -1);
             forAllConstIter(Map<labelPair>, faceToPatch, iter)
             {
                 ownPatch[iter.key()] = iter().first();
-                neiPatch[iter.key()] = iter().second();
+                nbrPatch[iter.key()] = iter().second();
             }
 
             // Create baffles. both sides same patch.
-            map = createBaffles(ownPatch, neiPatch);
+            map = createBaffles(ownPatch, nbrPatch);
 
             // Get pairs of faces created.
             // Just loop over faceMap and store baffle if we encounter a slave
@@ -957,6 +951,8 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::mergeBaffles
             );
         }
     }
+
+    mesh_.clearOut();
 
     // Change the mesh (no inflation)
     autoPtr<mapPolyMesh> map = meshMod.changeMesh(mesh_, false, true);
@@ -2300,7 +2296,7 @@ void Foam::meshRefinement::baffleAndSplitMesh
     pointField neiCc(mesh_.nFaces()-mesh_.nInternalFaces());
     calcNeighbourData(neiLevel, neiCc);
 
-    labelList ownPatch, neiPatch;
+    labelList ownPatch, nbrPatch;
     getBafflePatches
     (
         globalToMasterPatch,
@@ -2308,10 +2304,10 @@ void Foam::meshRefinement::baffleAndSplitMesh
         neiCc,
 
         ownPatch,
-        neiPatch
+        nbrPatch
     );
 
-    createBaffles(ownPatch, neiPatch);
+    createBaffles(ownPatch, nbrPatch);
 
     if (debug)
     {
@@ -2475,7 +2471,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::splitMesh
     pointField neiCc(mesh_.nFaces()-mesh_.nInternalFaces());
     calcNeighbourData(neiLevel, neiCc);
 
-    labelList ownPatch, neiPatch;
+    labelList ownPatch, nbrPatch;
     getBafflePatches
     (
         globalToMasterPatch,
@@ -2483,7 +2479,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::splitMesh
         neiCc,
 
         ownPatch,
-        neiPatch
+        nbrPatch
     );
 
     // Analyse regions. Reuse regionsplit
@@ -2491,7 +2487,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::splitMesh
 
     forAll(ownPatch, facei)
     {
-        if (ownPatch[facei] != -1 || neiPatch[facei] != -1)
+        if (ownPatch[facei] != -1 || nbrPatch[facei] != -1)
         {
             blockedFace[facei] = true;
         }
@@ -2566,7 +2562,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::splitMesh
             }
             else if (ownRegion != keepRegionI && neiRegion == keepRegionI)
             {
-                label newPatchi = neiPatch[facei];
+                label newPatchi = nbrPatch[facei];
                 if (newPatchi == -1)
                 {
                     newPatchi = max(defaultPatch, ownPatch[facei]);
@@ -2766,6 +2762,8 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::dupNonManifoldPoints
 
     // Insert changes into meshMod
     pointDuplicator.setRefinement(regionSide, meshMod);
+
+    mesh_.clearOut();
 
     // Change the mesh (no inflation, parallel sync)
     autoPtr<mapPolyMesh> map = meshMod.changeMesh(mesh_, false, true);
@@ -3398,6 +3396,8 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::meshRefinement::zonify
             );
         }
     }
+
+    mesh_.clearOut();
 
     // Change the mesh (no inflation, parallel sync)
     autoPtr<mapPolyMesh> map = meshMod.changeMesh(mesh_, false, true);

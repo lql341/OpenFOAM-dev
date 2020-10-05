@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -49,6 +49,7 @@ using namespace Foam;
 
 int main(int argc, char *argv[])
 {
+    entry::disableFunctionEntries = true;
     writeInfoHeader = false;
 
     argList::addNote("List times using timeSelector");
@@ -64,7 +65,20 @@ int main(int argc, char *argv[])
         "rm",
         "remove selected time directories"
     );
+    argList::addBoolOption
+    (
+        "withFunctionObjects",
+        "execute functionObjects"
+    );
+    argList::addBoolOption
+    (
+        "withFunctionEntries",
+        "execute functionEntries"
+    );
+
     #include "setRootCase.H"
+
+    entry::disableFunctionEntries = !args.optionFound("withFunctionEntries");
 
     label nProcs = 0;
 
@@ -73,11 +87,8 @@ int main(int argc, char *argv[])
 
     if (args.optionFound("processor"))
     {
-        // Determine the processor count directly
-        while (isDir(args.path()/(word("processor") + name(nProcs))))
-        {
-            ++nProcs;
-        }
+        // Determine the processor count
+        nProcs = fileHandler().nProcs(args.path());
 
         if (!nProcs)
         {
@@ -131,14 +142,22 @@ int main(int argc, char *argv[])
         {
             for (label proci=0; proci<nProcs; proci++)
             {
-                fileName procPath
+                const fileName procPath
                 (
                     args.path()/(word("processor") + name(proci))
                 );
 
                 forAll(timeDirs, timeI)
                 {
-                    rmDir(procPath/timeDirs[timeI].name());
+                    const fileName procTimePath
+                    (
+                        fileHandler().filePath(procPath/timeDirs[timeI].name())
+                    );
+
+                    if (isDir(procTimePath))
+                    {
+                        rmDir(procTimePath);
+                    }
                 }
             }
         }
@@ -146,7 +165,12 @@ int main(int argc, char *argv[])
         {
             forAll(timeDirs, timeI)
             {
-                rmDir(args.path()/timeDirs[timeI].name());
+                const fileName procTimePath
+                (
+                    fileHandler().filePath(args.path()/timeDirs[timeI].name())
+                );
+
+                rmDir(procTimePath);
             }
         }
     }

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,12 +32,11 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "rhoReactionThermo.H"
-#include "BasicChemistryModel.H"
+#include "fluidReactionThermo.H"
+#include "basicChemistryModel.H"
 #include "multiComponentMixture.H"
 #include "chemistrySolver.H"
 #include "OFstream.H"
-#include "thermoPhysicsTypes.H"
 #include "basicSpecieMixture.H"
 #include "cellModeller.H"
 #include "thermoTypeFunctions.H"

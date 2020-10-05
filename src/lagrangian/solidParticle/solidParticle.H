@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -39,6 +39,7 @@ SourceFiles
 #define solidParticle_H
 
 #include "particle.H"
+#include "Cloud.H"
 #include "IOstream.H"
 #include "autoPtr.H"
 #include "interpolationCellPoint.H"
@@ -60,7 +61,7 @@ Ostream& operator<<(Ostream&, const solidParticle&);
 
 
 /*---------------------------------------------------------------------------*\
-                           Class solidParticle Declaration
+                        Class solidParticle Declaration
 \*---------------------------------------------------------------------------*/
 
 class solidParticle
@@ -122,6 +123,10 @@ public:
 
             inline const vector& g() const;
     };
+
+
+    //- Runtime type information
+    TypeName("solidParticle");
 
 
     // Constructors
@@ -206,12 +211,8 @@ public:
             void hitWallPatch(solidParticleCloud& cloud, trackingData& td);
 
             //- Transform the physical properties of the particle
-            //  according to the given transformation tensor
-            virtual void transformProperties(const tensor& T);
-
-            //- Transform the physical properties of the particle
-            //  according to the given separation vector
-            virtual void transformProperties(const vector& separation);
+            //  according to the given transformation
+            virtual void transformProperties(const transformer&);
 
 
     // I-O

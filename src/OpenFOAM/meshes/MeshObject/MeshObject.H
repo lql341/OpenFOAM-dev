@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -68,7 +68,6 @@ SourceFiles
 #ifndef MeshObject_H
 #define MeshObject_H
 
-#include "regIOobject.H"
 #include "objectRegistry.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -101,40 +100,15 @@ public:
 
         explicit MeshObject(const Mesh& mesh);
 
+        MeshObject(const Mesh& mesh, const IOobject& io);
+
         static const Type& New(const Mesh& mesh);
 
-        template<class Data1>
+        template<class... Args>
         static const Type& New
         (
             const Mesh& mesh,
-            const Data1& d
-        );
-
-        template<class Data1, class Data2>
-        static const Type& New
-        (
-            const Mesh& mesh,
-            const Data1&,
-            const Data2&
-        );
-
-        template<class Data1, class Data2, class Data3>
-        static const Type& New
-        (
-            const Mesh& mesh,
-            const Data1&,
-            const Data2&,
-            const Data3&
-        );
-
-        template<class Data1, class Data2, class Data3, class Data4>
-        static const Type& New
-        (
-            const Mesh& mesh,
-            const Data1&,
-            const Data2&,
-            const Data3&,
-            const Data4&
+            const Args&... args
         );
 
 
@@ -160,7 +134,7 @@ public:
 
 
 /*---------------------------------------------------------------------------*\
-                           Class meshObject Declaration
+                         Class meshObject Declaration
 \*---------------------------------------------------------------------------*/
 
 class meshObject
@@ -175,6 +149,8 @@ public:
     // Constructors
 
         meshObject(const word& typeName, const objectRegistry& obr);
+
+        meshObject(const word& typeName, const IOobject& io);
 
 
     // Static member functions
@@ -225,11 +201,16 @@ public:
     :
         meshObject(typeName, obr)
     {}
+
+    TopologicalMeshObject(const word& typeName, const IOobject& io)
+    :
+        meshObject(typeName, io)
+    {}
 };
 
 
 /*---------------------------------------------------------------------------*\
-                    Class GeometricMeshObject Declaration
+                     Class GeometricMeshObject Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Mesh>
@@ -243,11 +224,16 @@ public:
     :
         TopologicalMeshObject<Mesh>(typeName, obr)
     {}
+
+    GeometricMeshObject(const word& typeName, const IOobject& io)
+    :
+        TopologicalMeshObject<Mesh>(typeName, io)
+    {}
 };
 
 
 /*---------------------------------------------------------------------------*\
-                    Class MoveableMeshObject Declaration
+                     Class MoveableMeshObject Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Mesh>
@@ -260,6 +246,11 @@ public:
     MoveableMeshObject(const word& typeName, const objectRegistry& obr)
     :
         GeometricMeshObject<Mesh>(typeName, obr)
+    {}
+
+    MoveableMeshObject(const word& typeName, const IOobject& io)
+    :
+        GeometricMeshObject<Mesh>(typeName, io)
     {}
 
     virtual bool movePoints() = 0;
@@ -282,12 +273,17 @@ public:
         MoveableMeshObject<Mesh>(typeName, obr)
     {}
 
+    UpdateableMeshObject(const word& typeName, const IOobject& io)
+    :
+        MoveableMeshObject<Mesh>(typeName, io)
+    {}
+
     virtual void updateMesh(const mapPolyMesh& mpm) = 0;
 };
 
 
 /*---------------------------------------------------------------------------*\
-                    Class PatchMeshObject Declaration
+                       Class PatchMeshObject Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Mesh>
@@ -300,6 +296,11 @@ public:
     PatchMeshObject(const word& typeName, const objectRegistry& obr)
     :
         UpdateableMeshObject<Mesh>(typeName, obr)
+    {}
+
+    PatchMeshObject(const word& typeName, const IOobject& io)
+    :
+        UpdateableMeshObject<Mesh>(typeName, io)
     {}
 
     //- Reordered/removed trailing patches. If validBoundary call is parallel

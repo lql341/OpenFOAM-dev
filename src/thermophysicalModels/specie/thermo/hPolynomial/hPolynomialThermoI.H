@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -89,6 +89,17 @@ inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Cp
 
 
 template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Hs
+(
+    const scalar p,
+    const scalar T
+) const
+{
+    return Ha(p, T) - Hf();
+}
+
+
+template<class EquationOfState, int PolySize>
 inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Ha
 (
     const scalar p,
@@ -100,18 +111,7 @@ inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Ha
 
 
 template<class EquationOfState, int PolySize>
-inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Hs
-(
-    const scalar p,
-    const scalar T
-) const
-{
-    return Ha(p, T) - Hc();
-}
-
-
-template<class EquationOfState, int PolySize>
-inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Hc()
+inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Hf()
 const
 {
     return Hf_;
@@ -125,7 +125,7 @@ inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::S
     const scalar T
 ) const
 {
-    return sCoeffs_.value(T) + EquationOfState::S(p, T);
+    return sCoeffs_.value(T) + EquationOfState::Sp(p, T);
 }
 
 
@@ -136,22 +136,6 @@ inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::Gstd
 ) const
 {
     return hCoeffs_.value(T) - sCoeffs_.value(T)*T;
-}
-
-
-template<class EquationOfState, int PolySize>
-inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::dGdT
-(
-    const scalar p,
-    const scalar T
-) const
-{
-    return
-    (
-        hCoeffs_.derivative(T)
-      - T*sCoeffs_.derivative(T)
-      - sCoeffs_.value(T)
-    );
 }
 
 

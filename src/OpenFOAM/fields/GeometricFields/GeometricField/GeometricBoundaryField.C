@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -166,7 +166,6 @@ readField
         }
     }
 
-
     // Check for any unset patches
     forAll(bmesh_, patchi)
     {
@@ -178,10 +177,7 @@ readField
                 (
                     dict
                 )   << "Cannot find patchField entry for cyclic "
-                    << bmesh_[patchi].name() << endl
-                    << "Is your field uptodate with split cyclics?" << endl
-                    << "Run foamUpgradeCyclics to convert mesh and fields"
-                    << " to split cyclics." << exit(FatalIOError);
+                    << bmesh_[patchi].name() << endl << exit(FatalIOError);
             }
             else
             {
@@ -355,42 +351,6 @@ Boundary
     forAll(bmesh_, patchi)
     {
         this->set(patchi, btf[patchi].clone(field));
-    }
-}
-
-
-template<class Type, template<class> class PatchField, class GeoMesh>
-Foam::GeometricField<Type, PatchField, GeoMesh>::Boundary::
-Boundary
-(
-    const typename GeometricField<Type, PatchField, GeoMesh>::
-    Boundary& btf
-)
-:
-    FieldField<PatchField, Type>(btf),
-    bmesh_(btf.bmesh_)
-{
-    if (debug)
-    {
-        InfoInFunction << endl;
-    }
-}
-
-
-template<class Type, template<class> class PatchField, class GeoMesh>
-Foam::GeometricField<Type, PatchField, GeoMesh>::Boundary::
-Boundary
-(
-    typename GeometricField<Type, PatchField, GeoMesh>::
-    Boundary&& btf
-)
-:
-    FieldField<PatchField, Type>(move(btf)),
-    bmesh_(btf.bmesh_)
-{
-    if (debug)
-    {
-        InfoInFunction << endl;
     }
 }
 

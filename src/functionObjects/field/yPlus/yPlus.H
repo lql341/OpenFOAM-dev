@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -75,13 +75,13 @@ namespace Foam
 {
 
 // Forward declaration of classes
-class turbulenceModel;
+class momentumTransportModel;
 
 namespace functionObjects
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class yPlus Declaration
+                            Class yPlus Declaration
 \*---------------------------------------------------------------------------*/
 
 class yPlus
@@ -94,7 +94,7 @@ protected:
 
     // Protected data
 
-        //- Optional phase name [K]
+        //- Optional phase name
         word phaseName_;
 
 
@@ -108,7 +108,7 @@ private:
         //- Calculate y+
         tmp<volScalarField> calcYPlus
         (
-            const turbulenceModel& turbModel
+            const momentumTransportModel& turbModel
         );
 
 

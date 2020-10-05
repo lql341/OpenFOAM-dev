@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,7 +40,7 @@ SourceFiles
 
 #include "TimePaths.H"
 #include "objectRegistry.H"
-#include "unwatchedIOdictionary.H"
+#include "IOdictionary.H"
 #include "FIFOStack.H"
 #include "clock.H"
 #include "cpuTime.H"
@@ -63,7 +63,7 @@ namespace Foam
 class argList;
 
 /*---------------------------------------------------------------------------*\
-                             Class Time Declaration
+                            Class Time Declaration
 \*---------------------------------------------------------------------------*/
 
 class Time
@@ -76,12 +76,12 @@ class Time
 {
     // Private Data
 
-        //- Any loaded dynamic libraries. Make sure to construct before
-        //  reading controlDict.
-        dlLibraryTable libs_;
+        //- Is runtime modification of dictionaries allowed?
+        Switch runTimeModifiable_;
 
         //- The controlDict
-        unwatchedIOdictionary controlDict_;
+        IOdictionary controlDict_;
+
 
 public:
 
@@ -183,9 +183,6 @@ private:
 
         //- Default graph format
         word graphFormat_;
-
-        //- Is runtime modification of dictionaries allowed?
-        Switch runTimeModifiable_;
 
         //- Is temporary object cache enabled
         mutable bool cacheTemporaryObjects_;
@@ -414,18 +411,6 @@ public:
             const functionObjectList& functionObjects() const
             {
                 return functionObjects_;
-            }
-
-            //- External access to the loaded libraries
-            const dlLibraryTable& libs() const
-            {
-                return libs_;
-            }
-
-            //- External access to the loaded libraries
-            dlLibraryTable& libs()
-            {
-                return libs_;
             }
 
             //- Return true if time currently being sub-cycled, otherwise false

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -45,7 +45,7 @@ Foam::SpecieMixture<MixtureType>::volScalarFieldProperty
 ) const
 {
     const typename MixtureType::thermoType& thermo =
-        this->getLocalThermo(speciei);
+        this->specieThermo(speciei);
 
     tmp<volScalarField> tPsi
     (
@@ -96,7 +96,7 @@ Foam::tmp<Foam::scalarField> Foam::SpecieMixture<MixtureType>::fieldProperty
 ) const
 {
     const typename MixtureType::thermoType& thermo =
-        this->getLocalThermo(speciei);
+        this->specieThermo(speciei);
 
     tmp<scalarField> tPsi(new scalarField(p.size()));
 
@@ -130,14 +130,14 @@ Foam::SpecieMixture<MixtureType>::SpecieMixture
 template<class MixtureType>
 Foam::scalar Foam::SpecieMixture<MixtureType>::Wi(const label speciei) const
 {
-    return this->getLocalThermo(speciei).W();
+    return this->specieThermo(speciei).W();
 }
 
 
 template<class MixtureType>
-Foam::scalar Foam::SpecieMixture<MixtureType>::Hc(const label speciei) const
+Foam::scalar Foam::SpecieMixture<MixtureType>::Hf(const label speciei) const
 {
-    return this->getLocalThermo(speciei).Hc();
+    return this->specieThermo(speciei).Hf();
 }
 
 
@@ -149,7 +149,7 @@ Foam::scalar Foam::SpecieMixture<MixtureType>::rho
     const scalar T
 ) const
 {
-    return this->getLocalThermo(speciei).rho(p, T);
+    return this->specieThermo(speciei).rho(p, T);
 }
 
 
@@ -181,7 +181,7 @@ Foam::scalar Foam::SpecieMixture<MixtureType>::Cp
     const scalar T
 ) const
 {
-    return this->getLocalThermo(speciei).Cp(p, T);
+    return this->specieThermo(speciei).Cp(p, T);
 }
 
 
@@ -213,7 +213,7 @@ Foam::scalar Foam::SpecieMixture<MixtureType>::HE
     const scalar T
 ) const
 {
-    return this->getLocalThermo(speciei).HE(p, T);
+    return this->specieThermo(speciei).HE(p, T);
 }
 
 
@@ -250,38 +250,6 @@ Foam::tmp<Foam::volScalarField> Foam::SpecieMixture<MixtureType>::HE
 
 
 template<class MixtureType>
-Foam::scalar Foam::SpecieMixture<MixtureType>::Ha
-(
-    const label speciei,
-    const scalar p,
-    const scalar T
-) const
-{
-    return this->getLocalThermo(speciei).Ha(p, T);
-}
-
-
-template<class MixtureType>
-Foam::tmp<Foam::volScalarField> Foam::SpecieMixture<MixtureType>::Ha
-(
-    const label speciei,
-    const volScalarField& p,
-    const volScalarField& T
-) const
-{
-    return volScalarFieldProperty
-    (
-        "Ha",
-        dimEnergy/dimMass,
-        &MixtureType::thermoType::Ha,
-        speciei,
-        p,
-        T
-    );
-}
-
-
-template<class MixtureType>
 Foam::scalar Foam::SpecieMixture<MixtureType>::Hs
 (
     const label speciei,
@@ -289,7 +257,19 @@ Foam::scalar Foam::SpecieMixture<MixtureType>::Hs
     const scalar T
 ) const
 {
-    return this->getLocalThermo(speciei).Hs(p, T);
+    return this->specieThermo(speciei).Hs(p, T);
+}
+
+
+template<class MixtureType>
+Foam::tmp<Foam::scalarField> Foam::SpecieMixture<MixtureType>::Hs
+(
+    const label speciei,
+    const scalarField& p,
+    const scalarField& T
+) const
+{
+    return fieldProperty(&MixtureType::thermoType::Hs, speciei, p, T);
 }
 
 
@@ -314,6 +294,50 @@ Foam::tmp<Foam::volScalarField> Foam::SpecieMixture<MixtureType>::Hs
 
 
 template<class MixtureType>
+Foam::scalar Foam::SpecieMixture<MixtureType>::Ha
+(
+    const label speciei,
+    const scalar p,
+    const scalar T
+) const
+{
+    return this->specieThermo(speciei).Ha(p, T);
+}
+
+
+template<class MixtureType>
+Foam::tmp<Foam::scalarField> Foam::SpecieMixture<MixtureType>::Ha
+(
+    const label speciei,
+    const scalarField& p,
+    const scalarField& T
+) const
+{
+    return fieldProperty(&MixtureType::thermoType::Ha, speciei, p, T);
+}
+
+
+template<class MixtureType>
+Foam::tmp<Foam::volScalarField> Foam::SpecieMixture<MixtureType>::Ha
+(
+    const label speciei,
+    const volScalarField& p,
+    const volScalarField& T
+) const
+{
+    return volScalarFieldProperty
+    (
+        "Ha",
+        dimEnergy/dimMass,
+        &MixtureType::thermoType::Ha,
+        speciei,
+        p,
+        T
+    );
+}
+
+
+template<class MixtureType>
 Foam::scalar Foam::SpecieMixture<MixtureType>::mu
 (
     const label speciei,
@@ -321,7 +345,7 @@ Foam::scalar Foam::SpecieMixture<MixtureType>::mu
     const scalar T
 ) const
 {
-    return this->getLocalThermo(speciei).mu(p, T);
+    return this->specieThermo(speciei).mu(p, T);
 }
 
 
@@ -353,7 +377,7 @@ Foam::scalar Foam::SpecieMixture<MixtureType>::kappa
     const scalar T
 ) const
 {
-    return this->getLocalThermo(speciei).kappa(p, T);
+    return this->specieThermo(speciei).kappa(p, T);
 }
 
 
@@ -376,36 +400,5 @@ Foam::tmp<Foam::volScalarField> Foam::SpecieMixture<MixtureType>::kappa
     );
 }
 
-
-template<class MixtureType>
-Foam::scalar Foam::SpecieMixture<MixtureType>::alphah
-(
-    const label speciei,
-    const scalar p,
-    const scalar T
-) const
-{
-    return this->getLocalThermo(speciei).alphah(p, T);
-}
-
-
-template<class MixtureType>
-Foam::tmp<Foam::volScalarField> Foam::SpecieMixture<MixtureType>::alphah
-(
-    const label speciei,
-    const volScalarField& p,
-    const volScalarField& T
-) const
-{
-    return volScalarFieldProperty
-    (
-        "alphah",
-        dimMass/dimLength/dimTime,
-        &MixtureType::thermoType::alphah,
-        speciei,
-        p,
-        T
-    );
-}
 
 // ************************************************************************* //

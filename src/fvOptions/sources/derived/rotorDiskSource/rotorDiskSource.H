@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -117,7 +117,7 @@ namespace fv
 {
 
 /*---------------------------------------------------------------------------*\
-                      Class rotorDiskSource Declaration
+                       Class rotorDiskSource Declaration
 \*---------------------------------------------------------------------------*/
 
 class rotorDiskSource
@@ -158,7 +158,7 @@ protected:
     // Protected data
 
         //- Reference density for incompressible case
-        scalar rhoRef_;
+        mutable scalar rhoRef_;
 
         //- Rotational speed [rad/s]
         //  Positive anti-clockwise when looking along -ve lift direction
@@ -194,7 +194,7 @@ protected:
         List<scalar> area_;
 
         //- Rotor local cylindrical co-ordinate system (r, theta, z)
-        cylindricalCS coordSys_;
+        coordinateSystems::cylindrical coordSys_;
 
          //- Rotor transformation co-ordinate system
         autoPtr<cylindrical> cylindrical_;
@@ -278,7 +278,7 @@ public:
             inline const List<point>& x() const;
 
             //- Return the rotor co-ordinate system (r, theta, z)
-            inline const cylindricalCS& coordSys() const;
+            inline const coordinateSystems::cylindrical& coordSys() const;
 
 
         // Evaluation
@@ -303,7 +303,7 @@ public:
             (
                 fvMatrix<vector>& eqn,
                 const label fieldi
-            );
+            ) const;
 
             //- Source term to compressible momentum equation
             virtual void addSup
@@ -311,7 +311,7 @@ public:
                 const volScalarField& rho,
                 fvMatrix<vector>& eqn,
                 const label fieldi
-            );
+            ) const;
 
 
         // IO

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -61,12 +61,8 @@ int main(int argc, char *argv[])
     #include "createControl.H"
     #include "createTimeControls.H"
     #include "createFields.H"
+    #include "createFieldRefs.H"
     #include "createSurfaceFilmModel.H"
-
-    volScalarField& p = mixture.p();
-    volScalarField& T = mixture.T();
-    const volScalarField& psi1 = mixture.thermo1().psi();
-    const volScalarField& psi2 = mixture.thermo2().psi();
 
     regionModels::surfaceFilmModel& surfaceFilm = tsurfaceFilm();
 

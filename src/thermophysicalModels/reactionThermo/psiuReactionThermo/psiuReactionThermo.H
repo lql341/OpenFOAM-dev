@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,18 +25,22 @@ Class
     Foam::psiuReactionThermo
 
 Description
-    Foam::psiuReactionThermo
+    Base-class for combustion fluid thermodynamic properties based on
+    compressibility.
+
+See also
+    Foam::basicThermo
 
 SourceFiles
     psiuReactionThermo.C
-    psiuReactionThermoNew.C
 
 \*---------------------------------------------------------------------------*/
 
 #ifndef psiuReactionThermo_H
 #define psiuReactionThermo_H
 
-#include "psiReactionThermo.H"
+#include "psiThermo.H"
+#include "basicCombustionMixture.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,23 +48,35 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class psiuReactionThermo Declaration
+                     Class psiuReactionThermo Declaration
 \*---------------------------------------------------------------------------*/
 
 class psiuReactionThermo
 :
-    public psiReactionThermo
+    virtual public psiThermo
 {
-
 protected:
 
     // Protected Member Functions
 
+        //- Return the unburnt enthalpy/internal energy field boundary types
+        //  by interrogating the temperature field boundary types
         wordList heuBoundaryTypes();
+
+        //- ...
         void heuBoundaryCorrection(volScalarField& heu);
 
 
 public:
+
+    // Public Classes
+
+        //- Forward declare the implementation class
+        class implementation;
+
+        //- Forward declare the composite class
+        class composite;
+
 
     //- Runtime type information
     TypeName("psiuReactionThermo");
@@ -78,18 +94,9 @@ public:
         );
 
 
-    // Constructors
-
-        //- Construct from mesh and phase name
-        psiuReactionThermo
-        (
-            const fvMesh&,
-            const word& phaseName
-        );
-
-
     // Selectors
 
+        //- Standard selection based on fvMesh
         static autoPtr<psiuReactionThermo> New
         (
             const fvMesh&,
@@ -105,6 +112,12 @@ public:
 
         //- Update properties
         virtual void correct() = 0;
+
+        //- Return the composition of the combustion mixture
+        virtual basicCombustionMixture& composition() = 0;
+
+        //- Return the composition of the combustion mixture
+        virtual const basicCombustionMixture& composition() const = 0;
 
 
         // Access to thermodynamic state variables.
@@ -142,13 +155,13 @@ public:
             //- Unburnt gas density [kg/m^3]
             virtual tmp<volScalarField> rhou() const
             {
-                return p_*psiu();
+                return p()*psiu();
             }
 
             //- Burnt gas density [kg/m^3]
             virtual tmp<volScalarField> rhob() const
             {
-                return p_*psib();
+                return p()*psib();
             }
 
             //- Unburnt gas compressibility [s^2/m^2]
@@ -162,6 +175,57 @@ public:
 
             //- Dynamic viscosity of burnt gas [kg/m/s]
             virtual tmp<volScalarField> mub() const = 0;
+};
+
+
+/*---------------------------------------------------------------------------*\
+             Class psiuReactionThermo::implementation Declaration
+\*---------------------------------------------------------------------------*/
+
+class psiuReactionThermo::implementation
+:
+    virtual public psiuReactionThermo
+{
+public:
+
+    // Constructors
+
+        //- Construct from mesh and phase name
+        implementation(const fvMesh&, const word& phaseName);
+
+
+    //- Destructor
+    virtual ~implementation();
+};
+
+
+/*---------------------------------------------------------------------------*\
+                Class psiuReactionThermo::composite Declaration
+\*---------------------------------------------------------------------------*/
+
+class psiuReactionThermo::composite
+:
+    public basicThermo::implementation,
+    public fluidThermo::implementation,
+    public psiThermo::implementation,
+    public psiuReactionThermo::implementation
+{
+public:
+
+    // Constructors
+
+        //- Construct from mesh and phase name
+        composite
+        (
+            const fvMesh& mesh,
+            const word& phaseName
+        )
+        :
+            basicThermo::implementation(mesh, phaseName),
+            fluidThermo::implementation(mesh, phaseName),
+            psiThermo::implementation(mesh, phaseName),
+            psiuReactionThermo::implementation(mesh, phaseName)
+        {}
 };
 
 

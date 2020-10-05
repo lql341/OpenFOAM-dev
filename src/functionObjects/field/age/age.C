@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -26,7 +26,7 @@ License
 #include "age.H"
 #include "fvmDiv.H"
 #include "fvmLaplacian.H"
-#include "turbulenceModel.H"
+#include "momentumTransportModel.H"
 #include "inletOutletFvPatchField.H"
 #include "wallFvPatch.H"
 #include "zeroGradientFvPatchField.H"
@@ -95,7 +95,8 @@ Foam::functionObjects::age::age
     const dictionary& dict
 )
 :
-    fvMeshFunctionObject(name, runTime, dict)
+    fvMeshFunctionObject(name, runTime, dict),
+    fvOptions_(mesh_)
 {
     read(dict);
 }
@@ -117,6 +118,11 @@ bool Foam::functionObjects::age::read(const dictionary& dict)
     schemesField_ = dict.lookupOrDefault<word>("schemesField", typeName);
     diffusion_ = dict.lookupOrDefault<Switch>("diffusion", false);
     tolerance_ = dict.lookupOrDefault<scalar>("tolerance", 1e-5);
+
+    if (dict.found("fvOptions"))
+    {
+        fvOptions_.reset(dict.subDict("fvOptions"));
+    }
 
     return true;
 }
@@ -173,9 +179,9 @@ bool Foam::functionObjects::age::execute()
         if (diffusion_)
         {
             tmuEff =
-                mesh_.lookupObject<turbulenceModel>
+                mesh_.lookupObject<momentumTransportModel>
                 (
-                    turbulenceModel::propertiesName
+                    momentumTransportModel::typeName
                 ).muEff();
 
             laplacianScheme =
@@ -186,7 +192,7 @@ bool Foam::functionObjects::age::execute()
         {
             fvScalarMatrix ageEqn
             (
-                fvm::div(phi, age, divScheme) == rho
+                fvm::div(phi, age, divScheme) == rho + fvOptions_(rho, age)
             );
 
             if (diffusion_)
@@ -195,6 +201,8 @@ bool Foam::functionObjects::age::execute()
             }
 
             ageEqn.relax(relaxCoeff);
+
+            fvOptions_.constrain(ageEqn);
 
             if (converged(i, ageEqn.solve(schemesField_).initialResidual()))
             {
@@ -210,9 +218,9 @@ bool Foam::functionObjects::age::execute()
         if (diffusion_)
         {
             tnuEff =
-                mesh_.lookupObject<turbulenceModel>
+                mesh_.lookupObject<momentumTransportModel>
                 (
-                    turbulenceModel::propertiesName
+                    momentumTransportModel::typeName
                 ).nuEff();
 
             laplacianScheme =
@@ -223,7 +231,8 @@ bool Foam::functionObjects::age::execute()
         {
             fvScalarMatrix ageEqn
             (
-                fvm::div(phi, age, divScheme) == dimensionedScalar(1)
+                fvm::div(phi, age, divScheme)
+             == dimensionedScalar(1) + fvOptions_(age)
             );
 
             if (diffusion_)
@@ -232,6 +241,8 @@ bool Foam::functionObjects::age::execute()
             }
 
             ageEqn.relax(relaxCoeff);
+
+            fvOptions_.constrain(ageEqn);
 
             if (converged(i, ageEqn.solve(schemesField_).initialResidual()))
             {

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -99,7 +99,7 @@ namespace Foam
 class fvMeshSubset;
 
 /*---------------------------------------------------------------------------*\
-                Class waveVelocityFvPatchVectorField Declaration
+               Class waveVelocityFvPatchVectorField Declaration
 \*---------------------------------------------------------------------------*/
 
 class waveVelocityFvPatchVectorField
@@ -156,20 +156,11 @@ public:
             const fvPatchFieldMapper&
         );
 
-        //- Copy constructor
+        //- Disallow copy without setting internal field reference
         waveVelocityFvPatchVectorField
         (
             const waveVelocityFvPatchVectorField&
-        );
-
-        //- Construct and return a clone
-        virtual tmp<fvPatchVectorField> clone() const
-        {
-            return tmp<fvPatchVectorField>
-            (
-                new waveVelocityFvPatchVectorField(*this)
-            );
-        }
+        ) = delete;
 
         //- Copy constructor setting internal field reference
         waveVelocityFvPatchVectorField
